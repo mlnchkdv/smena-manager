@@ -384,12 +384,22 @@ window.addEventListener('popstate', event => {
   }
   S.ui.restoringFilePath = null;
   const opener = S.ui.drawer ? S.ui.drawerOpener : null;
+  const preview = form?.type === 'filePreview' ? form.previewContext : null;
   const returningFromTask = Boolean(S.ui.drawer && target.kind !== 'task');
   applyBrowserLocation();
   const saved = workHistoryContext(event.state);
   const context = restoreWorkContext(saved, { location: !target.key || !!S.ui.drawer });
   render();
   restoreWorkScroll(context);
+  const catalog = preview?.catalogReturn;
+  if (catalog && catalog.path === location.pathname && !S.ui.modals.length) {
+    const list = document.querySelector('#main-content .files-page');
+    if (list?.dataset.previewPageKey === preview.pageKey && Number(list.dataset.previewPage) === preview.page) {
+      const content = document.getElementById('main-content');
+      content.scrollTop = catalog.scroll;
+      if (!tryFocus(catalog.focus)) content.focus({ preventScroll: true });
+    }
+  }
   if (returningFromTask && context && !S.ui.drawer && !tryFocus(opener)) {
     const content = document.getElementById('main-content');
     const heading = content?.querySelector('h1') || content;

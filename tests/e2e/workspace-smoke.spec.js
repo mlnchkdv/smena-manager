@@ -1917,6 +1917,93 @@ function samplePdf() {
   return Buffer.from(pdf);
 }
 
+test('page three keeps the selected PDF and reading position across catalog changes and rotation', async ({ page, context }) => {
+  test.setTimeout(150000);
+  await signIn(page);
+  const read = async client => (await (await client.get('/api/workspace')).json()).data;
+  const initial = await read(page.request);
+  const upload = await page.request.post('/api/files/upload', {
+    multipart: {
+      file: { name: 'PDF-catalog-000.pdf', mimeType: 'application/pdf', buffer: samplePdf() },
+      revision: String(initial.revision),
+      project: initial.projects[0].id,
+    },
+  });
+  expect(upload.status()).toBe(201);
+  const { file } = await upload.json();
+  const data = await read(page.request);
+  for (let n = 1; n <= 60; n++) data.files.push({ ...file, id: 'pdf-catalog-' + n, name: 'PDF-catalog-' + String(n).padStart(3, '0') + '.pdf' });
+  expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+  await page.goto('/e2e-team/files');
+  await setFilesView(page, 'list');
+  await page.locator('#workspace-file-q').fill('PDF-catalog');
+  for (const [selector, value] of [
+    ['#workspace-file-sort', 'name'],
+    ['#workspace-file-type', 'pdf'],
+    ['#files-page-size', '25'],
+  ]) {
+    await expect(page.locator(selector)).toBeAttached();
+    await page.evaluate(
+      ([selector, value]) => {
+        const select = document.querySelector(selector);
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      },
+      [selector, value],
+    );
+    await expect(page.locator(selector)).toHaveValue(value);
+  }
+  const jump = page.locator('#files-page-jump');
+  await jump.fill('2');
+  await jump.press('Enter');
+  await expect(page.locator('[data-a="previewFile"][data-id="pdf-catalog-38"]')).toBeVisible();
+  await jump.fill('3');
+  await jump.press('Enter');
+  const opener = page.locator('.workspace-file-table [data-a="previewFile"][data-id="pdf-catalog-57"]');
+  await expect(opener).toBeVisible();
+  const writer = await context.newPage();
+  await writer.goto('/e2e-team/files');
+  const latest = await read(writer.request);
+  latest.files.find(row => row.id === 'pdf-catalog-56').name = 'PDF-catalog-056b.pdf';
+  expect((await writer.request.put('/api/workspace', { data: { revision: latest.revision, data: latest } })).ok()).toBeTruthy();
+  await page.bringToFront();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const content = page.locator('#main-content');
+  for (const exit of ['close', 'escape', 'back']) {
+    await opener.scrollIntoViewIfNeeded();
+    const scroll = await content.evaluate(el => el.scrollTop);
+    await opener.click();
+    await expect(page.locator('.modal .file-preview-image')).toBeVisible();
+    await expect(page).toHaveURL(/file\/pdf-catalog-57$/);
+    if (exit === 'close') {
+      await page.setViewportSize({ width: 844, height: 390 });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.locator('.modal [data-a="closeModal"]').first().click();
+    } else if (exit === 'escape') await page.keyboard.press('Escape');
+    else await page.goBack();
+    await expect(opener).toBeFocused();
+    await expect(jump).toHaveValue('3');
+    await expect(page.locator('#workspace-file-q')).toHaveValue('PDF-catalog');
+    await expect(page.locator('#workspace-file-sort')).toHaveValue('name');
+    await expect(page.locator('#workspace-file-type')).toHaveValue('pdf');
+    expect(Math.abs((await content.evaluate(el => el.scrollTop)) - scroll)).toBeLessThanOrEqual(2);
+  }
+  const before = await read(writer.request);
+  expect((await writer.request.delete('/api/files/pdf-catalog-57', { data: { revision: before.revision } })).ok()).toBeTruthy();
+  if (await opener.isVisible()) {
+    await opener.click();
+    await expect(
+      page
+        .locator('.file-preview-message, .toast')
+        .filter({ hasText: /недоступен|unavailable/i })
+        .first(),
+    ).toBeVisible();
+  }
+  await expect(page.locator('.modal .file-preview-image')).toHaveCount(0);
+  expect((await page.request.get('/api/files/pdf-catalog-57/content')).status()).toBe(404);
+  await writer.close();
+});
+
 test('a delayed PDF cannot reopen after project access is withdrawn', async ({ page, browser }) => {
   await signIn(page);
   const data = (await (await page.request.get('/api/workspace')).json()).data;

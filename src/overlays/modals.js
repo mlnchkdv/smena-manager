@@ -7,6 +7,10 @@ export const workspaceModalRenderers = {};
 export function openModal(m, opener) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
   S.ui.modalOpeners[S.ui.modals.length] = S.ui.popOpener && S.ui.pop ? S.ui.popOpener : focusKey(opener || document.activeElement);
+  if (m.type === 'filePreview' && m.previewContext?.pageKey && opener) {
+    const content = opener.closest('#main-content');
+    if (content) m.previewContext.catalogReturn = { path: location.pathname, focus: focusKey(opener), scroll: content.scrollTop };
+  }
   S.ui.modals.push(m);
   if (m.type === 'filePreview' && m.previewContext?.pageKey) syncBrowserLocation({ push: true, fromFileCatalog: true });
   S.ui.pop = null;
