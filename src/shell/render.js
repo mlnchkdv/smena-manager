@@ -288,7 +288,7 @@ export function render() {
   const restoreKnowledgeSurface = knowledgeReadingRestorer?.();
   const appHtml = S.ui.auth ? renderAuth() : renderShell();
   if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#app'), appHtml);
-  else $('#app').innerHTML = appHtml;
+  else replaceReadingMarkup($('#app'), appHtml);
   restoreGraphSurface?.();
   const layerHtml = renderLayer();
   if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#layer'), layerHtml);

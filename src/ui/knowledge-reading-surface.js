@@ -1,4 +1,5 @@
 import { sameKnowledgeReadingInputs } from '../shared/knowledge-reading-state.js';
+import { retainedFileTable, rememberFileRows } from './file-table-surface.js';
 import { esc } from '../core/utils.js';
 
 const metadata = new WeakMap();
@@ -21,18 +22,21 @@ function keepConnected(root, html, retained) {
     }
     if (fresh !== template.content || old !== root) return false;
   }
-  const readers = new Set(retained.map(item => item.node));
+  const surfaces = new Map(retained.map(item => [item.node, item]));
   pairs.set(template.content, root);
   // Validate sibling order before touching the live DOM. A changed layout uses
   // the ordinary replacement path instead of attempting an in-place reorder.
   for (const [fresh, old] of pairs) {
-    if (readers.has(old)) continue;
+    if (surfaces.has(old)) continue;
     const expected = [...fresh.childNodes].map(child => pairs.get(child)).filter(Boolean);
     const existing = [...old.childNodes].filter(child => expected.includes(child));
     if (existing.length !== expected.length || existing.some((child, index) => child !== expected[index])) return false;
   }
   const update = (old, fresh) => {
-    if (readers.has(old)) return;
+    if (surfaces.has(old)) {
+      surfaces.get(old).update?.(old, fresh);
+      return;
+    }
     if (old !== root) {
       for (const attr of [...old.attributes]) if (!fresh.hasAttribute(attr.name)) old.removeAttribute(attr.name);
       for (const attr of fresh.attributes) if (old.getAttribute(attr.name) !== attr.value) old.setAttribute(attr.name, attr.value);
@@ -61,7 +65,15 @@ export function replaceReadingMarkup(root, html, retained = []) {
       if (html.includes(`${attribute}="${esc(key)}"`)) retained.push({ node, selector: `iframe[${attribute}="${CSS.escape(key)}"]` });
     }
   }
-  if (!retained.length || !keepConnected(root, html, retained)) root.innerHTML = html;
+  const hasFileList = html.includes('<tbody data-file-list=');
+  if (hasFileList) {
+    const table = retainedFileTable(root, html);
+    if (table) retained.push(table);
+  }
+  if (!retained.length || !keepConnected(root, html, retained)) {
+    root.innerHTML = html;
+    if (hasFileList) rememberFileRows(root);
+  }
 }
 
 // Only reuse nodes from the immediately preceding visible surface. Closing the

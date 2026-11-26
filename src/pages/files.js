@@ -1,3 +1,4 @@
+import { getSessionGeneration } from '../core/api.js';
 import { isHtmlFile } from '../shared/file-preview-policy.js';
 import { materialLocationLabel } from '../shared/material-location-label.js';
 import { fileCollectionPanel } from '../ui/file-collection.js';
@@ -102,8 +103,9 @@ function fileCard(file) {
   </article>`;
 }
 
-function fileTable(files) {
-  return `<div class="panel workspace-file-table-wrap"><table class="perm-t workspace-file-table"><thead><tr><th>Name</th><th>Project</th><th>Type</th><th>Size</th><th>Uploaded by</th><th>Date</th><th></th></tr></thead><tbody>${files
+function fileTable(files, projectId) {
+  const scope = JSON.stringify([getSessionGeneration(), S.ui.currentUser?.id, D().ws.id || D().ws.url, projectId, isRussian()]);
+  return `<div class="panel workspace-file-table-wrap"><table class="perm-t workspace-file-table"><thead><tr><th>Name</th><th>Project</th><th>Type</th><th>Size</th><th>Uploaded by</th><th>Date</th><th></th></tr></thead><tbody data-file-list="${esc(scope)}">${files
     .map(file => {
       const meta = fileMeta(file);
       const author = mem(file.by);
@@ -287,7 +289,7 @@ export function pageFiles(projectId = null) {
         : files.length
           ? view === 'grid'
             ? `<div class="fgrid workspace-file-grid">${window.items.map(fileCard).join('')}</div>`
-            : fileTable(window.items)
+            : fileTable(window.items, projectId)
           : empty(
               searched ? 'search-x' : projects.length ? 'folder-open' : 'folder-plus',
               searched

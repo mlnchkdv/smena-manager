@@ -1996,6 +1996,8 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await expect(page.locator('#workspace-file-q')).toBeFocused();
     await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount);
     await setFilesView(page, 'list');
+    const tableBeforeResize = await page.locator('.workspace-file-table').elementHandle();
+    const pdfBeforeResize = await page.locator(`.workspace-file-table [data-a="previewFile"][data-id="${file.id}"]`).elementHandle();
     for (const width of [320, 768, 941, 1024, 1366]) {
       await page.setViewportSize({ width, height: 844 });
       const geometry = await page.locator('.files-page').evaluate(el => ({
@@ -2013,6 +2015,10 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.waitForTimeout(180);
     await expect(page.locator('.workspace-file-table')).toBeVisible();
     await page.locator('.workspace-file-table').scrollIntoViewIfNeeded();
+    expect(await tableBeforeResize.evaluate(table => table === document.querySelector('.workspace-file-table'))).toBe(true);
+    expect(await pdfBeforeResize.evaluate(button => button.isConnected)).toBe(true);
+    await tableBeforeResize.dispose();
+    await pdfBeforeResize.dispose();
     const firstRow = page.locator('.workspace-file-table tbody tr').first();
     const nameBox = await firstRow.locator('td').first().boundingBox();
     const actionsBox = await firstRow.locator('.workspace-file-actions').boundingBox();
@@ -2075,7 +2081,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await expect(notice).not.toContainText('private-provider-token');
     await page.waitForTimeout(400);
     expect(failedContextCalls).toBe(1);
-    expect(await notice.locator('button').evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+    await expect.poll(() => notice.locator('button').evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
     await page.screenshot({ path: `output/playwright/audit-context-error-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
     await notice.locator('button').click();
     await expect.poll(() => failedContextCalls).toBe(2);
