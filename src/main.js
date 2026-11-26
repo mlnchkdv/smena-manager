@@ -46,7 +46,7 @@ import { t as tr, workspaceDraftLabel, projectRuleConflictLabel, workspaceRoleLa
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { disableWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { pollConnectionFlags, workspaceRefreshDelay } from './core/workspace-refresh.js';
-import { clearSession, getActiveWorkspace, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
+import { clearSession, getActiveWorkspace, getNotificationDeliveryStatus, getSessionGeneration, SESSION_STORAGE_KEY } from './core/api.js';
 import { mergeWorkspaceData } from './shared/workspace-merge.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
 import { TODAY, iso, updateToday, fmtTimestamp } from './core/utils.js';
@@ -360,6 +360,31 @@ function loadRouteData() {
   if (S.ui.route === 'settings' && S.ui.params.sec === 'data-transfer') void A.loadWorkspaceBackups();
 }
 
+function finishSessionRestore() {
+  const generation = getSessionGeneration();
+  const afterRender = () => {
+    const current = generation === getSessionGeneration() && !S.ui.auth && S.ui.currentUser;
+    const viewer = S.ui.modals.at(-1);
+    if (current && viewer?.directPdf) {
+      // A PDF result may be ready before the lazy dialog has mounted.
+      const kind = viewer.preview?.kind;
+      if (!kind || kind === 'loading' || (kind === 'pdf' && !document.querySelector('#layer .modal .file-preview-image'))) return;
+    }
+    window.removeEventListener('smena:rendered', afterRender);
+    if (!current) return;
+    if (S.ui.workspaceDirectoryPartial)
+      void import('./ui/workspaces.js')
+        .then(({ refreshWorkspaces }) => {
+          if (generation === getSessionGeneration()) return refreshWorkspaces();
+        })
+        .catch(() => {
+          /* The switcher retries on open. */
+        });
+    void refreshWebPushSubscription();
+  };
+  window.addEventListener('smena:rendered', afterRender);
+}
+
 window.addEventListener('popstate', event => {
   const form = S.ui.modals.at(-1);
   if (form?.type === 'researchForm' && form.beforeClose() === false) {
@@ -456,13 +481,13 @@ window.addEventListener('popstate', event => {
   const restoreView = user && !S.ui.needsOnboarding ? restoreDeploymentContext() : null;
   const saved = user && !S.ui.needsOnboarding ? workHistoryContext(history.state) : null;
   const work = restoreWorkContext(saved, { location: Boolean(S.ui.drawer && saved?.drawer === S.ui.drawer) });
+  if (user && !S.ui.needsOnboarding) finishSessionRestore();
   render();
   if (user && !S.ui.needsOnboarding) performance.mark('smena:bootstrap:ready');
   restoreView?.();
   restoreWorkScroll(work);
   if (user && !S.ui.needsOnboarding) {
     loadRouteData();
-    void refreshWebPushSubscription();
   }
 })();
 

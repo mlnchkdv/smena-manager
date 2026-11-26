@@ -222,16 +222,7 @@ async function restoreSession(phase) {
     if (!session) return null;
     if (cookieOnly) setSessionToken('cookie');
     const user = await loadWorkspaceFor(session.user, phase, session.workspaces);
-    if (session.partial) {
-      const generation = getSessionGeneration();
-      void import('../ui/workspaces.js')
-        .then(({ refreshWorkspaces }) => {
-          if (generation === getSessionGeneration()) return refreshWorkspaces();
-        })
-        .catch(() => {
-          /* The switcher retries on open. */
-        });
-    }
+    S.ui.workspaceDirectoryPartial = session.partial === true;
     return user;
   } catch (error) {
     if (!cookieOnly && error.status === 401) clearSession();
