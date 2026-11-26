@@ -102,6 +102,9 @@ export function renderShell() {
 }
 export function renderPage() {
   const r = S.ui.route;
+  // A reloaded file URL has no mounted catalog to preserve. Open its viewer
+  // first; querying and mounting the list can wait until the reader is closed.
+  if (r === 'files' && S.ui.modals.some(modal => modal.directPdf)) return `<div class="page"><h1>${tr('Files')}</h1></div>`;
   try {
     const P = {
       home: () => lazyPage('home'),

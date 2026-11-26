@@ -442,7 +442,11 @@ window.addEventListener('popstate', event => {
     S.ui.authBusy = false;
     S.ui.auth = user ? (S.ui.needsOnboarding ? 'onboarding' : null) : 'login';
     if (S.ui.needsOnboarding) S.ui.onb = 1;
-    if (user && !S.ui.needsOnboarding) applyBrowserLocation();
+    if (user && !S.ui.needsOnboarding) {
+      applyBrowserLocation();
+      const opened = S.ui.modals.at(-1);
+      if (opened?.type === 'filePreview' && opened.file.mimeType === 'application/pdf') opened.directPdf = true;
+    }
   } catch (error) {
     S.ui.authBusy = false;
     await (await import('./pages/workspace-recovery.js')).applyRecovery(error);

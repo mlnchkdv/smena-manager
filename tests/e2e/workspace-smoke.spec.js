@@ -1992,6 +1992,15 @@ test('page three keeps the selected PDF and reading position across catalog chan
     await expect(page.locator('#workspace-file-type')).toHaveValue('pdf');
     expect(Math.abs((await content.evaluate(el => el.scrollTop)) - scroll)).toBeLessThanOrEqual(2);
   }
+  await writer.goto('/e2e-team/file/pdf-catalog-57');
+  await expect(writer.locator('.modal .file-preview-image')).toBeVisible();
+  await expect(writer.locator('.files-page')).toHaveCount(0);
+  const backgroundQueries = await writer.evaluate(
+    () => performance.getEntriesByType('resource').filter(entry => new URL(entry.name).pathname === '/api/files/catalog/query').length,
+  );
+  expect(backgroundQueries).toBe(0);
+  await writer.locator('.modal [data-a="closeModal"]').first().click();
+  await expect(writer.locator('.files-page')).toBeVisible();
   const before = await read(writer.request);
   expect((await writer.request.delete('/api/files/pdf-catalog-57', { data: { revision: before.revision } })).ok()).toBeTruthy();
   if (await opener.isVisible()) {
