@@ -117,6 +117,20 @@ test('on-demand bootstrap reads no catalog and deltas never remove unloaded rows
   assert.deepEqual(fresh.files, []);
 });
 
+test('direct file bootstrap reuses only the requested row from the same revision', async () => {
+  const file = { id: 'opened', project: 'p' };
+  const result = { data: { revision: 4 }, fileCatalog: { mode: 'demand', total: 3 }, resolved: { revision: 4, id: file.id, file } };
+  requestFileIdentities([file.id], 152, true);
+  const noRequest = () => assert.fail('The direct file is already resolved');
+  assert.deepEqual((await hydrateFileCatalog(result, noRequest, 152)).files, [file]);
+  assert.deepEqual((await hydrateFileCatalog({ ...result, resolved: { ...result.resolved, file: null } }, noRequest, 152)).files, []);
+  assert.deepEqual((await hydrateFileCatalog(result, noRequest, 153)).files, []);
+  requestFileIdentities([file.id], 153);
+  const latest = { ...file, folderId: 'other' };
+  const refreshed = await hydrateFileCatalog({ ...result, data: { revision: 5 } }, async () => ({ revision: 5, files: [latest] }), 153);
+  assert.deepEqual(refreshed.files, [latest]);
+});
+
 test('on-demand metadata follows byte-budget continuations and stale page baselines cannot delete new scopes', async () => {
   const snapshot = { data: { revision: 30, trash: [] }, fileCatalog: { mode: 'demand', total: 9000 } };
   requestFileIdentities(['one', 'two'], 160, true);

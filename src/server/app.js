@@ -25,6 +25,7 @@ import {
   createWorkspaceBackup,
   importPortableWorkspace,
   getWorkspaceDatabase,
+  getWorkspaceFileCatalogPage,
   getWorkspaceStatus,
   listWorkspaceBackups,
   mutateWorkspaceDatabase,
@@ -560,7 +561,19 @@ app.delete('/api/trash/:id', requireRole('admin', 'editor'), async (request, res
 app.get('/api/workspace', async (request, response, next) => {
   try {
     const database = await getWorkspaceDatabase(request.get('x-smena-file-catalog') === 'demand' ? { catalog: 'metadata' } : {});
-    response.json({ data: workspaceCoreData(bindAccessProfiles(database, getAccessProfiles())) });
+    const id = request.get('x-smena-open-file');
+    let resolved;
+    if (request.get('x-smena-file-catalog') === 'demand' && id && /^[\w-]{1,180}$/.test(id)) {
+      try {
+        const page = await getWorkspaceFileCatalogPage(request.user, { revision: database.revision, ids: [id] });
+        resolved = { id, revision: page.revision, file: page.files[0] || null };
+      } catch (error) {
+        // If a move landed between the two reads, let normal catalog hydration
+        // retry against a fresh revision.
+        if (error.code !== 'REVISION_CONFLICT') throw error;
+      }
+    }
+    response.json({ data: workspaceCoreData(bindAccessProfiles(database, getAccessProfiles())), resolved });
   } catch (error) {
     next(error);
   }

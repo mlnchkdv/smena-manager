@@ -38,6 +38,7 @@ import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDo
 import { loadWorkspaceResources } from '../shared/workspace-load.js';
 import { selectInitialWorkspace } from './workspace-selection.js';
 import { bootstrapRead } from '../shared/bootstrap-read.js';
+import { parseAppLocation } from '../shared/app-location.js';
 
 const CONFLICT_RECOVERY_KEY = 'smena.recovery.conflict.v1';
 
@@ -101,10 +102,12 @@ async function loadWorkspaceFor(user, phase = () => {}, directory) {
   await selectInitialWorkspace(user, { read: bootstrapRead, directory });
   const generation = getSessionGeneration();
   phase('workspace');
+  const route = parseAppLocation(location.pathname);
+  const headers = route.kind === 'file' && /^[\w-]{1,180}$/.test(route.key) ? { 'X-Smena-Open-File': route.key } : {};
   const [workspaceUser, resources] = await Promise.all([
     bootstrapRead(signal => getCurrentUser({ signal })),
     loadWorkspaceResources({
-      getWorkspace: () => bootstrapRead(signal => getWorkspace({ signal })),
+      getWorkspace: () => bootstrapRead(signal => getWorkspace({ signal, headers })),
       getWorkspaceDocument: name => bootstrapRead(signal => getWorkspaceDocument(name, { signal })),
       getPersonalPreferences: () => bootstrapRead(signal => getPersonalPreferences({ signal })),
       getFileUploadPolicy: () => bootstrapRead(signal => getFileUploadPolicy({ signal })),

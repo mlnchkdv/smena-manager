@@ -51,8 +51,10 @@ export async function hydrateFileCatalog(result, request, session) {
   if (!result.fileCatalog) return result.data;
   if (result.fileCatalog.mode === 'demand') {
     const revision = result.data.revision;
-    const files = [];
-    const identities = [...wanted];
+    const resolved = result.resolved;
+    const included = resolved?.revision === revision && wanted.has(resolved.id) && (resolved.file === null || resolved.file?.id === resolved.id);
+    const files = included && resolved.file ? [resolved.file] : [];
+    const identities = [...wanted].filter(id => !included || id !== resolved.id);
     for (let i = 0; i < identities.length; i += 100) {
       let offset = 0;
       do {
