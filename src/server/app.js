@@ -202,10 +202,19 @@ app.post('/api/files/catalog/query', (_request, response, next) => {
   response.locals.catalogStart = performance.now();
   withCatalogRequest(next);
 });
+app.get('/api/workspaces', (_request, response, next) => {
+  response.locals.directoryStart = performance.now();
+  withCatalogRequest(next);
+});
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {
+    const authenticated = performance.now();
     const workspaces = await listUserWorkspaces(request.user, request.configuredProfiles, request.workspaceSnapshot);
+    response.setHeader(
+      'Server-Timing',
+      `auth;dur=${(authenticated - response.locals.directoryStart).toFixed(1)}, directory;dur=${(performance.now() - authenticated).toFixed(1)}`,
+    );
     response.json(request.query.session === '1' ? { user: request.user, workspaces } : { workspaces });
   } catch (error) {
     next(error);

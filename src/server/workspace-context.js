@@ -19,8 +19,8 @@ export function workspaceState(factory) {
   };
 }
 
-// Only the read-only catalog POST uses this scope. Authorization and search
-// see the same Drive root; the next HTTP request obtains a fresh validator.
+// Read-only catalog and directory requests share their Drive root with
+// authorization. The next HTTP request obtains a fresh validator.
 const catalogRequest = new AsyncLocalStorage();
 export const withCatalogRequest = next => catalogRequest.run(new Map(), next);
 export const catalogRequestRoots = () => catalogRequest.getStore();
