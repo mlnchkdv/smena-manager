@@ -13,3 +13,51 @@
   flex-shrink: 0;
   margin-left: auto;
 }
+
+.modal.file-reader {
+  max-width: 1080px;
+}
+.file-reader-pages {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 100%;
+}
+.file-reader-pages .input {
+  width: 7ch;
+  padding-inline: 4px;
+  text-align: center;
+}
+.file-preview-content[data-kind='audio'] {
+  min-height: 0;
+  flex: none;
+}
+.file-preview-content[data-actual-size='true'] .file-preview-image {
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin-inline: auto;
+}
+.file-preview-content[data-unwrapped='true'] pre {
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.file-reader .file-preview-text {
+  font-size: 14px;
+  line-height: 1.55;
+}
+#file-reading-mode[aria-pressed='true'] {
+  background: var(--text);
+  color: var(--surface);
+}
+@media (pointer: coarse), (max-width: 768px) {
+  .file-reader-pages > :is(button, input),
+  #file-reading-mode {
+    min-height: 44px;
+  }
+  .file-reader-pages .ibtn {
+    min-width: 44px;
+  }
+}

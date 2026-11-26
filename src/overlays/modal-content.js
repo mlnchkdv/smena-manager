@@ -139,7 +139,7 @@ export function modalHtml(m) {
       return wrap('', teamModal(m, H));
     case 'filePreview': {
       const body = filePreviewModal(m, H);
-      return wrap(m.preview?.kind === 'html' ? 'html-reader' : 'lg', body);
+      return wrap(m.preview?.kind === 'html' ? 'html-reader' : ['pdf', 'image', 'video', 'text'].includes(m.preview?.kind) ? 'lg file-reader' : 'lg', body);
     }
     case 'saveView':
       return wrap(
@@ -338,6 +338,26 @@ export function confirmModal(m) {
 export function shortcutsModal(H) {
   return `${H('Keyboard shortcuts')}<div class="modal-b shortcuts-grid">${SHORTCUTS.map(([g, list]) => `<div><div class="eyebrow" style="margin-bottom:6px">${g}</div>${list.map(([n, k]) => `<div class="row shortcut-row"><span class="grow">${n}</span>${shortcut(k)}</div>`).join('')}</div>`).join('')}</div>`;
 }
+function fileReadingControls(modal) {
+  const { kind, page, pages, loading } = modal.preview;
+  if (!['image', 'pdf', 'text'].includes(kind)) return '';
+  const ru = isRussian();
+  const text = kind === 'text';
+  const pressed = text ? !modal.unwrapped : Boolean(modal.actualSize);
+  const label = text ? (ru ? 'Перенос строк' : 'Wrap lines') : ru ? 'Исходный размер' : 'Actual size';
+  const toggle = `<button type="button" id="file-reading-mode" class="btn btn-secondary btn-sm" data-a="toggleFileReadingMode" aria-pressed="${pressed}" translate="no">${label}</button>`;
+  if (kind !== 'pdf' || pages === 1) return toggle;
+  const step = (direction, name) =>
+    `<button type="button" class="ibtn" data-a="pdfPreviewPage" data-page="${page + direction}" aria-label="${name}" title="${name}" ${loading || page + direction < 1 || page + direction > pages ? 'disabled' : ''}>${ic(direction < 0 ? 'chevron-left' : 'chevron-right', 16)}</button>`;
+  return `<form class="file-reader-pages" data-submit="pdfPreviewPage" translate="no">
+    ${step(-1, ru ? 'Предыдущая страница' : 'Previous page')}
+    <input id="file-reader-page" class="input" name="page" type="number" inputmode="numeric" required min="1" max="${pages}" value="${page}" aria-label="${ru ? 'Номер страницы' : 'Page number'}" ${loading ? 'disabled' : ''}>
+    <span class="hint num">/ ${pages}</span>
+    <button class="btn btn-secondary btn-sm" type="submit" ${loading ? 'disabled' : ''}>${ru ? 'Перейти' : 'Go'}</button>
+    ${step(1, ru ? 'Следующая страница' : 'Next page')}
+  </form>${toggle}`;
+}
+
 export function filePreviewModal(m, H) {
   ensureFilePreview(m, render);
   const f = m.file;
@@ -375,7 +395,7 @@ export function filePreviewModal(m, H) {
         ? `<pre class="file-preview-text" translate="no">${esc(preview.text)}</pre>`
         : `<div class="file-preview-message" role="status">${preview.kind === 'loading' ? 'Loading preview…' : preview.kind === 'error' ? esc(preview.message) : 'Preview is unavailable for this format or size. Download the file to open it.'}</div>`;
   return `${H(`<span translate="no">${esc(f.name)}</span>`)}
-  <div class="modal-b" data-keep="file-preview:${esc(f.id)}"><div class="file-preview-tools"><details class="ui-menu file-preview-info"><summary class="ibtn" aria-label="Details" title="${esc(path)}">${ic('info', 16)}</summary><div>${metadata}</div></details>${context && ['image', 'video', 'audio'].includes(preview.kind) ? `<button class="btn btn-ghost btn-sm" data-a="toggleMediaGallery" aria-pressed="${!!context.mediaOnly}" translate="no">${ic('images', 14)}${isRussian() ? 'Медиа на этой странице' : 'Media on this page'}</button>` : ''}${navigation}</div>${preview.kind === 'pdf' ? `<div class="row" style="justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page - 1}" ${preview.loading || preview.page === 1 ? 'disabled' : ''}>Previous</button><span><span>Page</span> ${preview.page} / ${preview.pages}</span><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page + 1}" ${preview.loading || preview.page === preview.pages ? 'disabled' : ''}>Next</button></div>` : ''}<div class="file-preview-content" tabindex="0" role="region" aria-label="${isRussian() ? 'Предпросмотр файла' : 'File preview'}" aria-busy="${Boolean(preview.loading)}">${content}</div>
+  <div class="modal-b" data-keep="file-preview:${esc(f.id)}"><div class="file-preview-tools"><details class="ui-menu file-preview-info"><summary class="ibtn" aria-label="Details" title="${esc(path)}">${ic('info', 16)}</summary><div>${metadata}</div></details>${context && ['image', 'video', 'audio'].includes(preview.kind) ? `<button class="btn btn-ghost btn-sm" data-a="toggleMediaGallery" aria-pressed="${!!context.mediaOnly}" translate="no">${ic('images', 14)}${isRussian() ? 'Медиа на этой странице' : 'Media on this page'}</button>` : ''}${fileReadingControls(m)}${navigation}</div><div class="file-preview-content" data-kind="${preview.kind}" data-actual-size="${!!m.actualSize}" data-unwrapped="${!!m.unwrapped}" data-keep="file-reading:${esc(m.previewInstance)}:${preview.page || 0}" tabindex="0" role="region" aria-label="${isRussian() ? 'Предпросмотр файла' : 'File preview'}" aria-busy="${Boolean(preview.loading)}">${content}</div>
   ${preview.kind === 'pdf' ? `<details translate="no"><summary>${document.documentElement.lang === 'ru' ? 'Текст страницы и выделение' : 'Page text and highlights'}</summary><p data-pdf-page-text style="user-select:text;white-space:pre-wrap">${esc(preview.text || '')}</p>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="capturePdfExcerpt">${document.documentElement.lang === 'ru' ? 'Выделенное в заметку' : 'Save selection as note'}</button>` : ''}</details>` : ''}${related}</div>
   <div class="modal-f file-preview-footer">${f.storageName ? `<button class="btn btn-primary" data-a="downloadStoredFile" data-id="${f.id}">${ic('download', 14)}Download</button>` : ''}<details class="ui-menu file-preview-more"><summary class="ibtn" aria-label="More actions">${ic('ellipsis', 16)}</summary><div>${fileActions}</div></details></div>`;
 }

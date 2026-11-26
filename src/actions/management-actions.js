@@ -1041,7 +1041,23 @@ handlers.A.listPage = el => {
 };
 handlers.A.pdfPreviewPage = el => {
   const modal = S.ui.modals.at(-1);
-  if (modal?.type === 'filePreview') void changePdfPreviewPage(modal, Number(el.dataset.page), render);
+  if (modal?.preview?.kind !== 'pdf') return;
+  const page = Number(el.dataset.page ?? el.elements?.namedItem('page')?.value);
+  if (Number.isInteger(page) && page >= 1 && page <= modal.preview.pages && page !== modal.preview.page) void changePdfPreviewPage(modal, page, render);
+};
+handlers.A.toggleFileReadingMode = el => {
+  const modal = S.ui.modals.at(-1);
+  const region = el.closest('.modal')?.querySelector('.file-preview-content');
+  if (!region || !['pdf', 'image', 'text'].includes(modal?.preview?.kind)) return;
+  if (modal.preview.kind === 'text') {
+    modal.unwrapped = !modal.unwrapped;
+    region.dataset.unwrapped = String(modal.unwrapped);
+    el.setAttribute('aria-pressed', String(!modal.unwrapped));
+  } else {
+    modal.actualSize = !modal.actualSize;
+    region.dataset.actualSize = String(modal.actualSize);
+    el.setAttribute('aria-pressed', String(modal.actualSize));
+  }
 };
 handlers.A.bulkSet = el => {
   const f = el.dataset.f;

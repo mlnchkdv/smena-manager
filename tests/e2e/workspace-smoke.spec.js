@@ -716,6 +716,8 @@ async function openFileFolderTools(page) {
   if ((await menu.getAttribute('open')) === null) await menu.locator(':scope > summary').click();
 }
 async function openFileFilters(page) {
+  const done = page.locator('.workspace-files-toolbar .compact-search-done');
+  if (await done.isVisible()) await done.click();
   const filters = page.locator('.files-filter-options');
   if ((await filters.getAttribute('open')) === null) await filters.locator(':scope > summary').click();
 }
@@ -1998,11 +2000,31 @@ test('PDF previews render pages locally without document scripts in Russian and 
     const image = page.locator('.modal .file-preview-image');
     await expect(image).toBeVisible({ timeout: 30000 });
     await expect(image).toHaveJSProperty('naturalWidth', 480);
+    const readingMode = page.locator('#file-reading-mode');
+    for (const width of [320, 768]) {
+      await page.setViewportSize({ width, height: 844 });
+      await expect(readingMode).toHaveText(language === 'Русский' ? 'Исходный размер' : 'Actual size');
+      await readingMode.click();
+      await expect(image).toHaveCSS('width', '480px');
+      expect(await page.locator('.modal').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
+      await readingMode.click();
+    }
+
     await page.locator('.modal [data-a="pdfPreviewPage"][data-page="2"]').click();
     await expect(page.locator('.modal [data-a="pdfPreviewPage"][data-page="3"]')).toBeDisabled({ timeout: 30000 });
     expect(await page.evaluate(() => globalThis.__pdfPreviewExecuted)).toBeUndefined();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: `output/playwright/pdf-preview-${language === 'Русский' ? 'ru' : 'en'}.png` });
+    await page.locator('#file-reader-page').fill('1');
+    await page.locator('#file-reader-page').press('Enter');
+    await expect(page.locator('.modal [data-a="pdfPreviewPage"][data-page="0"]')).toBeDisabled();
+    await page.locator('.modal [data-a="closeModal"]').first().click();
+    await page.locator('.workspace-file-table tbody tr').filter({ hasText: keyboardName }).locator('[data-a="previewFile"]').first().click();
+    await expect(readingMode).toHaveText(language === 'Русский' ? 'Перенос строк' : 'Wrap lines');
+    await readingMode.click();
+    await expect(page.locator('.file-preview-text')).toHaveCSS('white-space', 'pre');
+    await readingMode.click();
+    await expect(page.locator('.file-preview-text')).toHaveCSS('white-space', 'pre-wrap');
     await page.locator('.modal [data-a="closeModal"]').first().click();
     await page.locator('#workspace-file-q').fill('no-file-matches-history-eviction');
     await expect(page.locator('.workspace-file-card,.workspace-file-table tbody tr')).toHaveCount(0);
