@@ -128,6 +128,18 @@ test('HTTP workspace boundary rejects nonmembers and traversal, applies per-work
     const spaces = await listUserWorkspaces(owner, [owner, guest]);
     const a = spaces.find(item => item.name === 'Проект A');
     const b = spaces.find(item => item.name === 'Workspace B');
+    const opened = await call(guest, '/api/workspaces?session=1&fileWorkspace=' + encodeURIComponent(b.url));
+    assert.match(opened.headers.get('server-timing'), /auth;dur=.*directory;dur=/u);
+    const selected = await opened.json();
+    assert.equal(selected.partial, true);
+    assert.deepEqual(
+      selected.workspaces.map(space => space.id),
+      [b.id],
+    );
+    const unavailable = await (await call(guest, '/api/workspaces?session=1&fileWorkspace=' + encodeURIComponent(a.url))).json();
+    assert.equal(unavailable.partial, undefined);
+    assert.ok(!unavailable.workspaces.some(space => space.id === a.id));
+    assert.deepEqual(unavailable.workspaces, (await (await call(guest, '/api/workspaces')).json()).workspaces);
     assert.equal((await call(guest, '/api/workspace', a.id)).status, 403);
     assert.equal((await call(owner, '/api/workspace', '../escape')).status, 403);
     assert.equal((await call(owner, `/api/workspace?workspace=${b.id}`, a.id)).status, 403);

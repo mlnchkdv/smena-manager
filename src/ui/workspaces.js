@@ -2,7 +2,7 @@ import { A, IN, confirmDlg } from '../actions/actions.js';
 import { D, S, flushLocalSave } from '../core/store.js';
 import { esc, $ } from '../core/utils.js';
 import { isRussian, t, workspaceRoleLabel } from '../core/i18n.js';
-import { getActiveWorkspace, workspaceDirectoryRequest, deleteAllWorkspaces } from '../core/api.js';
+import { getActiveWorkspace, getSessionGeneration, workspaceDirectoryRequest, deleteAllWorkspaces } from '../core/api.js';
 import { workspaceSyncIsClean, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { personalPreferenceSyncState } from '../core/personal-preferences.js';
 import { mergeWorkspaceSettings } from '../shared/workspace-settings-draft.js';
@@ -526,19 +526,23 @@ A.restoreArchivedWorkspace = async el => {
 };
 
 export async function refreshWorkspaces(force = true) {
-  if (S.ui.workspaceDirectoryLoading || (!force && Date.now() - (S.ui.workspaceDirectoryCheckedAt || 0) < 30000)) return;
-  S.ui.workspaceDirectoryLoading = true;
+  const generation = getSessionGeneration();
+  if (S.ui.workspaceDirectoryLoading?.generation === generation || (!force && Date.now() - (S.ui.workspaceDirectoryCheckedAt || 0) < 30000)) return;
+  S.ui.workspaceDirectoryLoading = { generation };
   S.ui.workspaceDirectoryError = '';
   try {
     const { workspaces } = await workspaceDirectoryRequest();
+    if (generation !== getSessionGeneration()) return;
     S.ui.availableWorkspaces = workspaces;
-    S.ui.workspaceDirectoryCheckedAt = Date.now();
   } catch {
-    S.ui.workspaceDirectoryError = copy('Could not refresh workspaces. Try again.', 'Не удалось обновить список пространств. Повторите попытку.');
+    if (generation === getSessionGeneration())
+      S.ui.workspaceDirectoryError = copy('Could not refresh workspaces. Try again.', 'Не удалось обновить список пространств. Повторите попытку.');
   } finally {
-    S.ui.workspaceDirectoryLoading = false;
-    S.ui.workspaceDirectoryCheckedAt = Date.now();
-    if (S.ui.pop?.type === 'ws' || S.ui.palette?.mode === 'ws' || S.ui.route === 'settings') render();
+    if (S.ui.workspaceDirectoryLoading?.generation === generation) S.ui.workspaceDirectoryLoading = false;
+    if (generation === getSessionGeneration()) {
+      S.ui.workspaceDirectoryCheckedAt = Date.now();
+      if (S.ui.pop?.type === 'ws' || S.ui.palette?.mode === 'ws' || S.ui.route === 'settings') render();
+    }
   }
 }
 A.refreshWorkspaces = () => refreshWorkspaces();

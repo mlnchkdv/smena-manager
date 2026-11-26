@@ -240,7 +240,9 @@ export async function loginWithGoogle(credential) {
 }
 
 export async function getSessionDirectory(options = {}) {
-  const result = await request('/api/workspaces?session=1', options, true);
+  const route = typeof location !== 'undefined' && parseAppLocation(location.pathname);
+  const target = route?.kind === 'file' && route.key && route.slug ? '&fileWorkspace=' + encodeURIComponent(route.slug) : '';
+  const result = await request('/api/workspaces?session=1' + target, options, true);
   sessionAccount = result.user.id;
   return result;
 }

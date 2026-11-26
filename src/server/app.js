@@ -11,7 +11,14 @@ import express from 'express';
 import crypto from 'node:crypto';
 import { reportProviderError, safeProviderError } from './provider-safety.js';
 import { getWorkspaceAccessProfiles as getAccessProfiles, requireAuth, requireRole } from './auth.js';
-import { createWorkspace, listUserWorkspaces, setWorkspaceArchived, requireWorkspace, workspaceDirectoryEntries } from './workspace-directory.js';
+import {
+  createWorkspace,
+  listUserWorkspaces,
+  setWorkspaceArchived,
+  requireWorkspace,
+  workspaceDirectoryEntries,
+  workspaceForFileLink,
+} from './workspace-directory.js';
 import { readKnowledgeCatalog, knowledgeCoreCatalog } from './knowledge-catalog.js';
 import { replaceKnowledgeCatalog } from './knowledge-catalog-write.js';
 import { readKnowledgeCatalogPage } from './knowledge-catalog-pages.js';
@@ -210,12 +217,14 @@ app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {
     const authenticated = performance.now();
-    const workspaces = await listUserWorkspaces(request.user, request.configuredProfiles, request.workspaceSnapshot);
+    const session = request.query.session === '1';
+    const selected = session && (await workspaceForFileLink(request.query.fileWorkspace, request.user, request.configuredProfiles, request.workspaceSnapshot));
+    const workspaces = selected ? [selected] : await listUserWorkspaces(request.user, request.configuredProfiles, request.workspaceSnapshot);
     response.setHeader(
       'Server-Timing',
       `auth;dur=${(authenticated - response.locals.directoryStart).toFixed(1)}, directory;dur=${(performance.now() - authenticated).toFixed(1)}`,
     );
-    response.json(request.query.session === '1' ? { user: request.user, workspaces } : { workspaces });
+    response.json(session ? { user: request.user, workspaces, ...(selected ? { partial: true } : {}) } : { workspaces });
   } catch (error) {
     next(error);
   }

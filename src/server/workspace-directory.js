@@ -42,31 +42,39 @@ export function workspaceUser(data, identity, { legacy = false, configured = [] 
   throw forbidden();
 }
 
+async function visibleEntry(entry, root, identity, configured) {
+  const data = entry.id === 'default' ? root : await readWorkspaceCore(entry.id);
+  let user;
+  try {
+    user = workspaceUser(data, identity, { legacy: entry.id === 'default', configured });
+  } catch {
+    return null;
+  }
+  if (entry.state === 'archived' && user.role !== 'admin') return null;
+  return {
+    archived: entry.state === 'archived',
+    id: entry.id,
+    name: data.ws?.name || '',
+    url: data.ws?.url || '',
+    c: data.ws?.c || '#5A67D8',
+    role: user.role,
+    memberRole: memberForProfile(data, identity)?.role || user.role,
+    initialized: Boolean(data.ws?.name),
+  };
+}
+
+export async function workspaceForFileLink(slug, identity, configured, root) {
+  if (typeof slug !== 'string' || !slug || slug.length > 200) return null;
+  const entry = root.ws?.url === slug ? { id: 'default' } : directoryEntries(root, false).find(item => item.url === slug);
+  if (!entry) return null;
+  const visible = await visibleEntry(entry, root, identity, configured);
+  return visible?.url === slug ? visible : null;
+}
+
 export async function listUserWorkspaces(identity, configured = [], root) {
   root ??= await inWorkspace('default', () => getWorkspaceDatabase({ fields: [...coreFields, '_workspaceDirectory'] }));
   const entries = [{ id: 'default' }, ...directoryEntries(root, true)];
-  const visible = await Promise.all(
-    entries.map(async entry => {
-      const data = entry.id === 'default' ? root : await readWorkspaceCore(entry.id);
-      let user;
-      try {
-        user = workspaceUser(data, identity, { legacy: entry.id === 'default', configured });
-      } catch {
-        return null;
-      }
-      if (entry.state === 'archived' && user.role !== 'admin') return null;
-      return {
-        archived: entry.state === 'archived',
-        id: entry.id,
-        name: data.ws?.name || '',
-        url: data.ws?.url || '',
-        c: data.ws?.c || '#5A67D8',
-        role: user.role,
-        memberRole: memberForProfile(data, identity)?.role || user.role,
-        initialized: Boolean(data.ws?.name),
-      };
-    }),
-  );
+  const visible = await Promise.all(entries.map(entry => visibleEntry(entry, root, identity, configured)));
   return visible.filter(Boolean);
 }
 

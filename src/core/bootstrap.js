@@ -221,7 +221,18 @@ async function restoreSession(phase) {
     S.ui.authConfig = config;
     if (!session) return null;
     if (cookieOnly) setSessionToken('cookie');
-    return await loadWorkspaceFor(session.user, phase, session.workspaces);
+    const user = await loadWorkspaceFor(session.user, phase, session.workspaces);
+    if (session.partial) {
+      const generation = getSessionGeneration();
+      void import('../ui/workspaces.js')
+        .then(({ refreshWorkspaces }) => {
+          if (generation === getSessionGeneration()) return refreshWorkspaces();
+        })
+        .catch(() => {
+          /* The switcher retries on open. */
+        });
+    }
+    return user;
   } catch (error) {
     if (!cookieOnly && error.status === 401) clearSession();
     throw error;
