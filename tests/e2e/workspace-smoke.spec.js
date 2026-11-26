@@ -2052,6 +2052,15 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.locator('#file-reader-page').press('Enter');
     await expect(page.locator('.modal [data-a="pdfPreviewPage"][data-page="0"]')).toBeDisabled();
     await page.locator('.modal [data-a="closeModal"]').first().click();
+    const pdfOpener = page.locator(`.workspace-file-table [data-a="previewFile"][data-id="${file.id}"]`);
+    await expect(pdfOpener).toBeFocused();
+    for (const exit of ['escape', 'back']) {
+      await pdfOpener.click();
+      await expect(image).toBeVisible();
+      if (exit === 'escape') await page.keyboard.press('Escape');
+      else await page.goBack();
+      await expect(pdfOpener).toBeFocused();
+    }
     await page.locator('.workspace-file-table tbody tr').filter({ hasText: keyboardName }).locator('[data-a="previewFile"]').first().click();
     await expect(readingMode).toHaveText(language === 'Русский' ? 'Перенос строк' : 'Wrap lines');
     await readingMode.click();

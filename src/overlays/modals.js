@@ -4,9 +4,9 @@ import { focusKey, render, syncBrowserLocation } from '../shell/render.js';
 export { TEMPLATES, SHORTCUTS } from './modal-data.js';
 export const fileModalRenderers = {};
 export const workspaceModalRenderers = {};
-export function openModal(m) {
+export function openModal(m, opener) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
-  S.ui.modalOpeners[S.ui.modals.length] = S.ui.popOpener && S.ui.pop ? S.ui.popOpener : focusKey(document.activeElement);
+  S.ui.modalOpeners[S.ui.modals.length] = S.ui.popOpener && S.ui.pop ? S.ui.popOpener : focusKey(opener || document.activeElement);
   S.ui.modals.push(m);
   if (m.type === 'filePreview' && m.previewContext?.pageKey) syncBrowserLocation({ push: true, fromFileCatalog: true });
   S.ui.pop = null;

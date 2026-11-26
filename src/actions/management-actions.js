@@ -793,21 +793,24 @@ handlers.A.previewFile = async el => {
       )
     : {};
   if (f && entityAllowed(D(), `file:${f.id}`, graphOptions()))
-    openModal({
-      type: 'filePreview',
-      file: f,
-      initialPage: position.page,
-      initialTime: position.seconds,
-      tid: f.task,
-      previewContext: {
-        owner: getSessionGeneration(),
-        workspace: S.ui.activeWorkspace,
-        pageKey: el.closest?.('.files-page')?.dataset.previewPageKey,
-        page: Number(el.closest?.('.files-page')?.dataset.previewPage || 0),
-        pages: Number(el.closest?.('.files-page')?.dataset.previewPages || 1),
-        ids: [...new Set([...document.querySelectorAll('.files-page [data-a="previewFile"]')].map(b => b.dataset.id))].slice(0, 500),
+    openModal(
+      {
+        type: 'filePreview',
+        file: f,
+        initialPage: position.page,
+        initialTime: position.seconds,
+        tid: f.task,
+        previewContext: {
+          owner: getSessionGeneration(),
+          workspace: S.ui.activeWorkspace,
+          pageKey: el.closest?.('.files-page')?.dataset.previewPageKey,
+          page: Number(el.closest?.('.files-page')?.dataset.previewPage || 0),
+          pages: Number(el.closest?.('.files-page')?.dataset.previewPages || 1),
+          ids: [...new Set([...document.querySelectorAll('.files-page [data-a="previewFile"]')].map(b => b.dataset.id))].slice(0, 500),
+        },
       },
-    });
+      el.closest?.('.files-page') ? el : undefined,
+    );
   else toast('This file is unavailable or access changed.', { kind: 'err' });
 };
 handlers.A.continueFilePreviewPage = el => {
