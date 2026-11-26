@@ -4,7 +4,7 @@ import { reportProviderError } from './provider-safety.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getWorkspaceDatabase } from './workspace-store.js';
-import { workspaceMemberRole } from '../shared/workspace-access.js';
+import { mergeAccessProfiles, workspaceMemberRole } from '../shared/workspace-access.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { ensureAuthSession, registerAuthSession, sessionDetailsFromRequest } from './auth-session-store.js';
 import { recordLoginSecurityNotification } from './login-security.js';
@@ -233,10 +233,12 @@ export async function requireAuth(request, response, next) {
           })
         : null,
     ]);
+    const configured = getAccessProfiles();
     if (result.dynamic) {
-      const profiles = await directoryLoginProfiles(getAccessProfiles(), database);
-      profile = profiles.find(item => item.id === result.profile.id && item.email === result.profile.email);
-      if (!profile && !(await listUserWorkspaces(result.profile, getAccessProfiles())).length) {
+      const matches = item => item.id === result.profile.id && item.email === result.profile.email;
+      profile = mergeAccessProfiles(configured, database).find(matches);
+      if (!profile) profile = (await directoryLoginProfiles(configured, database)).find(matches);
+      if (!profile && !(await listUserWorkspaces(result.profile, configured, database)).length) {
         response.status(401).json({ error: 'Account is unavailable.' });
         return;
       }
@@ -244,7 +246,7 @@ export async function requireAuth(request, response, next) {
     } else {
       const member = memberForProfile(database, result.profile);
       if (member && ['deactivated', 'removed'].includes(String(member.status || '').toLowerCase())) {
-        if (!(await listUserWorkspaces(profile, getAccessProfiles())).length) {
+        if (!(await listUserWorkspaces(profile, configured, database)).length) {
           response.status(401).json({ error: 'Account is deactivated.' });
           return;
         }
@@ -258,7 +260,7 @@ export async function requireAuth(request, response, next) {
     }
     if (touch) response.once('close', () => void touch().catch(error => reportProviderError('[Auth] Session activity update failed', error)));
     request.user = safeProfile(profile);
-    request.configuredProfiles = getAccessProfiles();
+    request.configuredProfiles = configured;
     request.workspaceSnapshot = database;
     request.sessionId = result.sessionId;
     request.authSession = activeSession;

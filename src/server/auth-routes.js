@@ -65,9 +65,10 @@ authRouter.get('/config', async (request, response) => {
     configuredProfiles = getAccessProfiles().filter(profile => profile.active);
     const database = await getWorkspaceDatabase({ fields: ['members', '_workspaceDirectory'] }).catch(() => null);
     workspaceStorageAvailable = Boolean(database);
-    profiles = database
-      ? await directoryLoginProfiles(configuredProfiles, database)
-      : mergeAccessProfiles(configuredProfiles, database).filter(profile => profile.active);
+    profiles = mergeAccessProfiles(configuredProfiles, database);
+    // The public configuration only needs to know if any Google account can
+    // sign in. The credential exchange still resolves the complete identity.
+    if (database && !profiles.some(profile => profile.active && profile.email)) profiles = await directoryLoginProfiles(configuredProfiles, database);
     profileCount = configuredProfiles.length;
   } catch (error) {
     configurationError = error.message;
