@@ -588,6 +588,7 @@ export async function renderHtmlFilePreview(request, response, next) {
 fileRouter.get('/:id/html-preview', renderHtmlFilePreview);
 
 export async function streamFileContent(request, response, next) {
+  const lookupStarted = performance.now();
   try {
     const database = await getWorkspaceFileSnapshot(request.user, request.params.id);
     const file = database.files?.find(item => item.id === request.params.id);
@@ -612,12 +613,19 @@ export async function streamFileContent(request, response, next) {
         .end();
       return;
     }
+    const streamStarted = performance.now();
     const result = await getStorageProvider().openDownloadStream(file.storageName, file.storageFileId, range);
     if (!result) {
       response.status(404).json({ error: 'Stored file is unavailable.', code: 'FILE_UNAVAILABLE' });
       return;
     }
     const partial = Boolean(range);
+    const { fileReadStart } = response.locals;
+    if (fileReadStart !== undefined)
+      response.setHeader(
+        'Server-Timing',
+        `access;dur=${(lookupStarted - fileReadStart).toFixed(1)}, file;dur=${(streamStarted - lookupStarted).toFixed(1)}, storage;dur=${(performance.now() - streamStarted).toFixed(1)}`,
+      );
     response.status(partial ? 206 : 200);
     response.setHeader('Accept-Ranges', 'bytes');
     const responsePolicy = getFileResponsePolicy(file.name, file.mimeType || result.mimeType, request.query.download === '1');

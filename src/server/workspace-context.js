@@ -19,7 +19,7 @@ export function workspaceState(factory) {
   };
 }
 
-// Read-only catalog and directory requests share their Drive root with
+// Read-only catalog, directory and file requests share their Drive root with
 // authorization. The next HTTP request obtains a fresh validator.
 const catalogRequest = new AsyncLocalStorage();
 export const withCatalogRequest = next => catalogRequest.run(new Map(), next);

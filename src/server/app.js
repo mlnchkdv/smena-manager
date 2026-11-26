@@ -213,6 +213,10 @@ app.get('/api/workspaces', (_request, response, next) => {
   response.locals.directoryStart = performance.now();
   withCatalogRequest(next);
 });
+app.get('/api/files/:id/content', (_request, response, next) => {
+  response.locals.fileReadStart = performance.now();
+  withCatalogRequest(next);
+});
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {
