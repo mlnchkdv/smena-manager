@@ -360,6 +360,8 @@ function fileReadingControls(modal) {
 
 export function filePreviewModal(m, H) {
   ensureFilePreview(m, render);
+  if (m.preview.kind === 'unavailable')
+    return H('Files') + '<div class="modal-b file-preview-message" role="status">This file is unavailable or access changed.</div>';
   const f = m.file;
   const context = m.previewContext,
     at = context?.ids.indexOf(f.id) ?? -1;

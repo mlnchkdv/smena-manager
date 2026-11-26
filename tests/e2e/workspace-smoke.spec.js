@@ -1889,13 +1889,7 @@ test.describe('file search clear control', () => {
   });
 });
 
-test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page, browserName }) => {
-  await signIn(page);
-  const current = (await (await page.request.get('/api/workspace')).json()).data;
-  const expectedFileCount = current.files.length + 3;
-  const keyboardName = `e2e-${browserName}-keyboard-upload.txt`;
-  const previousImages = current.files.filter(file => file.type === 'img').map(file => file.id);
-  const previousPdfs = current.files.filter(file => file.type === 'pdf').map(file => file.id);
+function samplePdf() {
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R /OpenAction << /S /JavaScript /JS (globalThis.__pdfPreviewExecuted=true;) >> >>',
     '<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
@@ -1920,9 +1914,72 @@ test('PDF previews render pages locally without document scripts in Russian and 
   });
   const xref = Buffer.byteLength(pdf);
   pdf += `xref\n0 8\n0000000000 65535 f \n${offsets.map(offset => `${String(offset).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(pdf);
+}
+
+test('a delayed PDF cannot reopen after project access is withdrawn', async ({ page, browser }) => {
+  await signIn(page);
+  const data = (await (await page.request.get('/api/workspace')).json()).data;
+  const project = data.projects[0];
+  const result = await page.request.post('/api/files/upload', {
+    multipart: {
+      file: { name: 'e2e-grant.pdf', mimeType: 'application/pdf', buffer: samplePdf() },
+      revision: String(data.revision),
+      project: project.id,
+    },
+  });
+  expect(result.status()).toBe(201);
+  const { file } = await result.json();
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const member = await context.newPage();
+  let release;
+  const gate = new Promise(resolve => {
+    release = resolve;
+  });
+  try {
+    await signIn(member, 'e2e-editor-access-id-2026-secure');
+    const path = '/api/files/' + file.id + '/content';
+    let ready;
+    const captured = new Promise(resolve => {
+      ready = resolve;
+    });
+    await member.route('**' + path, async route => {
+      const response = await route.fetch();
+      ready(response.status());
+      await gate;
+      await route.fulfill({ response }).catch(() => {});
+    });
+    await member.goto('/e2e-team/file/' + file.id, { waitUntil: 'domcontentloaded' });
+    expect(await captured).toBe(200);
+    const latest = (await (await page.request.get('/api/workspace')).json()).data;
+    const restricted = latest.projects.find(item => item.id === project.id);
+    Object.assign(restricted, { private: true, access: 'private', lead: latest.me, members: [latest.me] });
+    expect((await page.request.put('/api/workspace', { data: { revision: latest.revision, data: latest } })).ok()).toBeTruthy();
+    expect([403, 404]).toContain((await member.request.get(path)).status());
+    await member.evaluate(() => dispatchEvent(new Event('focus')));
+    await expect(member.locator('.file-preview-message')).toContainText(/недоступен|unavailable/i, { timeout: 20000 });
+    release();
+    await expect(member.locator('.modal [data-a="downloadStoredFile"], .modal .file-preview-image')).toHaveCount(0);
+    await member.unroute('**' + path);
+    await member.reload();
+    await expect(member.locator('.shell')).toBeVisible();
+    await expect(member.locator('body')).not.toContainText(file.name);
+  } finally {
+    release();
+    await context.close();
+  }
+});
+
+test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page, browserName }) => {
+  await signIn(page);
+  const current = (await (await page.request.get('/api/workspace')).json()).data;
+  const expectedFileCount = current.files.length + 3;
+  const keyboardName = `e2e-${browserName}-keyboard-upload.txt`;
+  const previousImages = current.files.filter(file => file.type === 'img').map(file => file.id);
+  const previousPdfs = current.files.filter(file => file.type === 'pdf').map(file => file.id);
   const upload = await page.request.post('/api/files/upload', {
     multipart: {
-      file: { name: 'e2e-safe-preview.pdf', mimeType: 'application/pdf', buffer: Buffer.from(pdf) },
+      file: { name: 'e2e-safe-preview.pdf', mimeType: 'application/pdf', buffer: samplePdf() },
       revision: String(current.revision),
       project: current.projects[0].id,
     },

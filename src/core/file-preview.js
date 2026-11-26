@@ -1,5 +1,5 @@
 import { downloadWorkspaceFile, mediaContentUrl, getSessionGeneration, getSessionToken, getActiveWorkspace } from './api.js';
-import { S } from './store.js';
+import { S, canSee, proj } from './store.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { uid } from './utils.js';
 import { clampedMediaStart } from '../shared/whiteboard-media.js';
@@ -38,9 +38,24 @@ export async function imagePreviewSize(url) {
   return { width: image.naturalWidth, height: image.naturalHeight };
 }
 
+function previewScopeCurrent(state) {
+  return !S.ui.auth && state.owner === S.ui.currentUser?.id && state.generation === getSessionGeneration();
+}
+
+function fileAccessLost(modal) {
+  const data = S.data;
+  const file = data.files.find(item => item.id === modal.file.id) || modal.file;
+  // A demand-loaded page can evict a readable file. Only a known deletion or
+  // changed project access invalidates an open preview.
+  return Boolean((file.project && !canSee(proj(file.project))) || data.trash?.some(item => item.kind === 'file' && item.data?.file?.id === file.id));
+}
+
 export function disposeClosedPreviews() {
   for (const [modal, state] of previews) {
-    if (!S.ui.auth && S.ui.modals.includes(modal) && state.owner === S.ui.currentUser?.id && state.generation === getSessionGeneration()) continue;
+    const open = S.ui.modals.includes(modal);
+    const current = previewScopeCurrent(state);
+    if (open && current && !fileAccessLost(modal)) continue;
+    if (open && current) modal.preview = { kind: 'unavailable' };
     document.querySelectorAll('[data-file-player]').forEach(player => {
       if (player.dataset.filePlayer === modal.file.id && player.dataset.filePreviewKey === modal.previewInstance) {
         player.pause();
@@ -49,8 +64,7 @@ export function disposeClosedPreviews() {
       }
     });
     state.controller.abort();
-    if (S.ui.modals.includes(modal) && (state.owner !== S.ui.currentUser?.id || state.generation !== getSessionGeneration()))
-      S.ui.modals = S.ui.modals.filter(item => item !== modal);
+    if (open && !current) S.ui.modals = S.ui.modals.filter(item => item !== modal);
     if (state.url) URL.revokeObjectURL(state.url);
     previews.delete(modal);
   }
@@ -59,6 +73,10 @@ export function disposeClosedPreviews() {
 export function ensureFilePreview(modal, refresh, { measureImage = false } = {}) {
   modal.previewInstance ||= uid('preview');
   if (modal.preview) return;
+  if (fileAccessLost(modal)) {
+    modal.preview = { kind: 'unavailable' };
+    return;
+  }
   const policy = filePreviewPolicy(modal.file);
   modal.preview = { kind: policy.kind ? 'loading' : 'unsupported' };
   if (!policy.kind) return;
@@ -85,7 +103,7 @@ export function ensureFilePreview(modal, refresh, { measureImage = false } = {})
   queueMicrotask(async () => {
     try {
       const { blob } = await downloadWorkspaceFile(modal.file.id, false, { signal: state.controller.signal, maxBytes: policy.maxBytes });
-      if (!previews.has(modal) || !S.ui.modals.includes(modal) || state.owner !== S.ui.currentUser?.id) return;
+      if (!previews.has(modal) || !S.ui.modals.includes(modal) || !previewScopeCurrent(state)) return;
       if (policy.kind === 'pdf') {
         state.pdf = blob;
         await showPdfPage(modal, state, modal.initialPage || 1);
@@ -98,7 +116,9 @@ export function ensureFilePreview(modal, refresh, { measureImage = false } = {})
       }
     } catch (error) {
       if (state.controller.signal.aborted) return;
-      modal.preview = { kind: 'error', message: policy.kind === 'pdf' ? 'PDF preview is unavailable. Download the file instead.' : error.message };
+      modal.preview = [403, 404].includes(error.status)
+        ? { kind: 'unavailable' }
+        : { kind: 'error', message: policy.kind === 'pdf' ? 'PDF preview is unavailable. Download the file instead.' : error.message };
     }
     if (previews.has(modal) && S.ui.modals.includes(modal)) refresh();
   });
@@ -154,7 +174,7 @@ export function preserveFilePlayers() {
 async function showPdfPage(modal, state, number) {
   const { renderPdfPage } = await import('./pdf-preview.js');
   const result = await renderPdfPage(state.pdf, number, state.controller.signal);
-  if (!previews.has(modal) || state.owner !== S.ui.currentUser?.id || state.controller.signal.aborted) return;
+  if (!previews.has(modal) || !previewScopeCurrent(state) || state.controller.signal.aborted) return;
   if (state.url) URL.revokeObjectURL(state.url);
   state.url = URL.createObjectURL(result.blob);
   modal.preview = { kind: 'pdf', url: state.url, page: result.page, pages: result.pages, text: result.text };
