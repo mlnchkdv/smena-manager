@@ -185,7 +185,16 @@ export function demandFilePage(options, pageKey) {
       }
     });
   }
-  const previous = loaded?.scope === scope && loaded.revision === fileRevision() && loaded.query === query ? loaded.page : null;
+  // An unrelated write advances the workspace revision before the catalog
+  // query completes. Keep this page's rows while they are still present in
+  // the current snapshot. The view resolves IDs through its current index
+  // and therefore still applies the current project access and filters.
+  const samePage = loaded?.scope === scope && loaded.query === query;
+  const previous =
+    samePage &&
+    (loaded.revision === fileRevision() || (failed !== key && loaded.page.files.every(file => S.data.files.some(current => current.id === file.id))))
+      ? loaded.page
+      : null;
   const knownIds =
     options.query && !options.offset && !previous && loaded?.scope === scope && loaded.revision === fileRevision() && failed !== key
       ? new Set(loaded.page.files.map(file => file.id))
