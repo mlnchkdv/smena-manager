@@ -20,7 +20,7 @@ import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
-import { disposeClosedPreviews, ensureFilePreview, preserveFilePlayers } from '../core/file-preview.js';
+import { disposeClosedPreviews, ensureFilePreview, mountPdfPreviews, preserveFilePlayers } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus, captureActionMenuState } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
 import { replaceReadingMarkup } from '../ui/knowledge-reading-surface.js';
@@ -306,6 +306,7 @@ export function render(previewOnly) {
   else replaceReadingMarkup($('#layer'), layerHtml);
   restoreKnowledgeSurface?.finish();
   restorePlayers();
+  mountPdfPreviews();
   if (keepCatalog) translateElement($('#layer'));
   else translateApp();
   normalizeTablists();

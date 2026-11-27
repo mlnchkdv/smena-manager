@@ -66,6 +66,7 @@ export function disposeClosedPreviews() {
     state.controller.abort();
     if (open && !current) S.ui.modals = S.ui.modals.filter(item => item !== modal);
     if (state.url) URL.revokeObjectURL(state.url);
+    if (state.canvas) state.canvas.width = state.canvas.height = 0;
     previews.delete(modal);
   }
 }
@@ -110,7 +111,8 @@ export function ensureFilePreview(modal, refresh, { measureImage = false } = {})
       if (!previews.has(modal) || !S.ui.modals.includes(modal) || !previewScopeCurrent(state)) return;
       if (policy.kind === 'pdf') {
         state.pdf = blob;
-        await showPdfPage(modal, state, modal.initialPage || 1, worker);
+        await showPdfPage(modal, state, modal.initialPage || 1, refresh, worker);
+        return;
       } else if (['text', 'html'].includes(policy.kind)) modal.preview = { kind: 'text', text: await blob.text() };
       else {
         state.url = URL.createObjectURL(blob);
@@ -183,27 +185,53 @@ export function preserveFilePlayers() {
   };
 }
 
-async function showPdfPage(modal, state, number, worker) {
+export function mountPdfPreviews() {
+  for (const [modal, state] of previews) {
+    if (!state.canvas || modal.preview?.kind !== 'pdf') continue;
+    const slot = document.querySelector(`[data-pdf-canvas="${CSS.escape(modal.previewInstance)}"]`);
+    if (slot && slot.firstChild !== state.canvas) slot.replaceChildren(state.canvas);
+  }
+}
+
+async function showPdfPage(modal, state, number, refresh, worker) {
   const { renderPdfPage } = await import('./pdf-preview.js');
-  const result = await renderPdfPage(state.pdf, number, state.controller.signal, { worker });
-  if (!previews.has(modal) || !previewScopeCurrent(state) || state.controller.signal.aborted) return;
-  if (state.url) URL.revokeObjectURL(state.url);
-  state.url = URL.createObjectURL(result.blob);
-  modal.preview = { kind: 'pdf', url: state.url, page: result.page, pages: result.pages, text: result.text };
+  state.pdfPageController?.abort();
+  const pageController = (state.pdfPageController = new AbortController());
+  const signal = AbortSignal.any([state.controller.signal, pageController.signal]);
+  const current = () => !signal.aborted && previews.has(modal) && S.ui.modals.includes(modal) && previewScopeCurrent(state);
+  await renderPdfPage(state.pdf, number, signal, {
+    worker,
+    onPage({ canvas, page, pages }) {
+      if (!current()) return false;
+      if (state.canvas) state.canvas.width = state.canvas.height = 0;
+      state.canvas = canvas;
+      canvas.className = 'file-preview-image';
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', modal.file.name);
+      canvas.setAttribute('translate', 'no');
+      modal.preview = { kind: 'pdf', page, pages };
+      refresh();
+      return true;
+    },
+    onText(text) {
+      if (!current()) return;
+      modal.preview.text = text;
+      const slot = document.querySelector(`[data-pdf-canvas="${CSS.escape(modal.previewInstance)}"]`);
+      const paragraph = slot?.closest('.modal')?.querySelector('[data-pdf-page-text]');
+      if (paragraph) paragraph.textContent = text;
+    },
+  });
 }
 
 export async function changePdfPreviewPage(modal, number, refresh) {
   const state = previews.get(modal);
-  if (!state?.pdf || state.busy || modal.preview?.kind !== 'pdf') return;
-  state.busy = true;
+  if (!state?.pdf || modal.preview?.kind !== 'pdf' || modal.preview.loading) return;
   modal.preview.loading = true;
   refresh();
   try {
-    await showPdfPage(modal, state, number);
+    await showPdfPage(modal, state, number, refresh);
   } catch {
     if (!state.controller.signal.aborted) modal.preview = { kind: 'error', message: 'PDF preview is unavailable. Download the file instead.' };
-  } finally {
-    state.busy = false;
     if (previews.has(modal) && S.ui.modals.includes(modal)) refresh();
   }
 }

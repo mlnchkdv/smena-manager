@@ -2208,7 +2208,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.locator(`[data-a="previewFile"][data-id="${file.id}"]`).first().click();
     const image = page.locator('.modal .file-preview-image');
     await expect(image).toBeVisible({ timeout: 30000 });
-    await expect(image).toHaveJSProperty('naturalWidth', 480);
+    await expect(image).toHaveJSProperty('width', 480);
     const readingMode = page.locator('#file-reading-mode');
     for (const width of [320, 768]) {
       await page.setViewportSize({ width, height: 844 });

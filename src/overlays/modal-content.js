@@ -391,11 +391,13 @@ export function filePreviewModal(m, H) {
   }
   const content = ['video', 'audio'].includes(preview.kind)
     ? `<${preview.kind} controls playsinline preload="metadata" data-file-player="${esc(f.id)}" data-file-preview-key="${esc(m.previewInstance)}" ${m.initialTime != null ? `data-media-start="${m.initialTime}"` : ''} src="${esc(preview.url)}" aria-label="${esc(f.name)}" class="file-preview-player"></${preview.kind}>${m.initialTime != null ? `<p class="hint" data-media-start-status role="status">${isRussian() ? 'Начальная позиция' : 'Start position'}: ${m.initialTime} ${isRussian() ? 'с. Если она выходит за длительность, откроется конец файла.' : 's. Positions beyond the duration open near the end.'}</p>` : ''}<p class="hint" data-media-fallback hidden>${isRussian() ? 'Браузер не может воспроизвести этот формат. Скачайте файл.' : 'This browser cannot play this format. Download the file.'}</p>`
-    : preview.kind === 'image' || preview.kind === 'pdf'
-      ? `<img src="${esc(preview.url)}" alt="${esc(f.name)}" class="file-preview-image" translate="no">`
-      : preview.kind === 'text'
-        ? `<pre class="file-preview-text" translate="no">${esc(preview.text)}</pre>`
-        : `<div class="file-preview-message" role="status">${preview.kind === 'loading' ? 'Loading preview…' : preview.kind === 'error' ? esc(preview.message) : 'Preview is unavailable for this format or size. Download the file to open it.'}</div>`;
+    : preview.kind === 'pdf'
+      ? `<div data-pdf-canvas="${esc(m.previewInstance)}"></div>`
+      : preview.kind === 'image'
+        ? `<img src="${esc(preview.url)}" alt="${esc(f.name)}" class="file-preview-image" translate="no">`
+        : preview.kind === 'text'
+          ? `<pre class="file-preview-text" translate="no">${esc(preview.text)}</pre>`
+          : `<div class="file-preview-message" role="status">${preview.kind === 'loading' ? 'Loading preview…' : preview.kind === 'error' ? esc(preview.message) : 'Preview is unavailable for this format or size. Download the file to open it.'}</div>`;
   return `${H(`<span translate="no">${esc(f.name)}</span>`)}
   <div class="modal-b" data-keep="file-preview:${esc(f.id)}"><div class="file-preview-tools"><details class="ui-menu file-preview-info"><summary class="ibtn" aria-label="Details" title="${esc(path)}">${ic('info', 16)}</summary><div>${metadata}</div></details>${context && ['image', 'video', 'audio'].includes(preview.kind) ? `<button class="btn btn-ghost btn-sm" data-a="toggleMediaGallery" aria-pressed="${!!context.mediaOnly}" translate="no">${ic('images', 14)}${isRussian() ? 'Медиа на этой странице' : 'Media on this page'}</button>` : ''}${fileReadingControls(m)}${navigation}</div><div class="file-preview-content" data-kind="${preview.kind}" data-actual-size="${!!m.actualSize}" data-unwrapped="${!!m.unwrapped}" data-keep="file-reading:${esc(m.previewInstance)}:${preview.page || 0}" tabindex="0" role="region" aria-label="${isRussian() ? 'Предпросмотр файла' : 'File preview'}" aria-busy="${Boolean(preview.loading)}">${content}</div>
   ${preview.kind === 'pdf' ? `<details translate="no"><summary>${document.documentElement.lang === 'ru' ? 'Текст страницы и выделение' : 'Page text and highlights'}</summary><p data-pdf-page-text style="user-select:text;white-space:pre-wrap">${esc(preview.text || '')}</p>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="capturePdfExcerpt">${document.documentElement.lang === 'ru' ? 'Выделенное в заметку' : 'Save selection as note'}</button>` : ''}</details>` : ''}${related}</div>

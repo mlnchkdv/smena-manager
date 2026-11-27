@@ -65,10 +65,12 @@ export async function readPdfPageCount(blob, signal) {
   }
 }
 
-export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = false, worker } = {}) {
+export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = false, worker, onPage, onText } = {}) {
+  if (onPage) performance.mark('smena:pdf:document-start');
   const { loading } = await openPdf(blob, signal, worker);
   let rendering;
   let canvas;
+  let pageShown = false;
   const cancel = () => {
     rendering?.cancel();
     void loading.destroy().catch(() => {});
@@ -78,6 +80,7 @@ export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = fals
   try {
     if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
     const pdf = await loading.promise;
+    if (onPage) performance.mark('smena:pdf:document-ready');
     const page = Math.max(1, Math.min(pdf.numPages, Math.floor(pageNumber) || 1));
     const source = await pdf.getPage(page);
     const original = source.getViewport({ scale: 1 });
@@ -89,6 +92,27 @@ export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = fals
     canvas.height = Math.max(1, Math.ceil(viewport.height));
     rendering = source.render({ canvas, viewport, annotationMode: AnnotationMode.DISABLE, background: '#ffffff' });
     await rendering.promise;
+    signal.throwIfAborted();
+    if (onPage) {
+      performance.mark('smena:pdf:canvas-ready');
+      pageShown = onPage({ canvas, page, pages: pdf.numPages });
+      if (pageShown) {
+        // Text extraction should never delay or replace a visible page.
+        try {
+          const content = await source.getTextContent();
+          if (!signal.aborted)
+            onText(
+              content.items
+                .map(item => item.str || '')
+                .join(' ')
+                .slice(0, 60000),
+            );
+        } catch {
+          /* The rendered page remains readable when text extraction fails. */
+        }
+      }
+      return;
+    }
     const image = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     if (!image || signal.aborted) throw new DOMException('Aborted', 'AbortError');
     const content = thumbnail ? { items: [] } : await source.getTextContent();
@@ -100,7 +124,7 @@ export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = fals
   } finally {
     clearTimeout(timer);
     signal.removeEventListener('abort', cancel);
-    if (canvas) canvas.width = canvas.height = 0;
+    if (canvas && !pageShown) canvas.width = canvas.height = 0;
     await loading.destroy().catch(() => {});
   }
 }
