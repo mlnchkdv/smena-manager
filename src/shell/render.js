@@ -249,9 +249,14 @@ export function render(previewOnly) {
   // A selected PDF can start loading before the catalog redraw and the first
   // lazy dialog bundle. The dialog will reuse this modal's preview state.
   const modal = S.ui.modals.at(-1);
-  // Only an explicit preview-only update may reuse the catalog DOM. Sync,
-  // permission changes, routing and ordinary renders still rebuild the shell.
-  const keepCatalog = modal?.type === 'filePreview' && previewOnly === modal && !S.ui.auth && S.ui.route === 'files' && !!$('#main-content .files-page');
+  // A PDF update only changes the layer. Keep the mounted shell on both the
+  // catalog and the direct reader; ordinary renders still update permissions.
+  const keepFileShell =
+    modal?.type === 'filePreview' &&
+    previewOnly === modal &&
+    !S.ui.auth &&
+    S.ui.route === 'files' &&
+    Boolean($('#main-content .files-page') || (modal.directPdf && $('#app .shell')));
   if (!S.ui.auth && S.ui.currentUser && modal?.type === 'filePreview' && !modal.preview && filePreviewPolicy(modal.file).kind === 'pdf')
     ensureFilePreview(modal, () => render(modal));
   const restorePlayers = preserveFilePlayers();
@@ -295,7 +300,7 @@ export function render(previewOnly) {
   const keep = $$('[data-keep]').map(el => [el.dataset.keep, el.scrollTop, el.scrollLeft]);
   const restoreGraphSurface = graphSurfaceRestorer?.();
   const restoreKnowledgeSurface = knowledgeReadingRestorer?.();
-  if (!keepCatalog) {
+  if (!keepFileShell) {
     const appHtml = S.ui.auth ? renderAuth() : renderShell();
     if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#app'), appHtml);
     else replaceReadingMarkup($('#app'), appHtml);
@@ -307,7 +312,7 @@ export function render(previewOnly) {
   restoreKnowledgeSurface?.finish();
   restorePlayers();
   mountPdfPreviews();
-  if (keepCatalog) translateElement($('#layer'));
+  if (keepFileShell) translateElement($('#layer'));
   else translateApp();
   normalizeTablists();
   makeFocusable();

@@ -1993,7 +1993,9 @@ test('page three keeps the selected PDF and reading position across catalog chan
     expect(Math.abs((await content.evaluate(el => el.scrollTop)) - scroll)).toBeLessThanOrEqual(2);
   }
   await writer.goto('/e2e-team/file/pdf-catalog-57');
-  await expect(writer.locator('.modal .file-preview-image')).toBeVisible();
+  const directPage = writer.locator('.modal canvas.file-preview-image');
+  await expect(directPage).toBeVisible();
+  expect(await directPage.evaluate(canvas => canvas.getContext('2d').getImageData(1, 1, 1, 1).data[3])).toBe(255);
   await expect(writer.locator('.files-page')).toHaveCount(0);
   const backgroundQueries = await writer.evaluate(
     () => performance.getEntriesByType('resource').filter(entry => new URL(entry.name).pathname === '/api/files/catalog/query').length,

@@ -209,7 +209,11 @@ export function mountPdfPreviews() {
   for (const [modal, state] of previews) {
     if (!state.canvas || modal.preview?.kind !== 'pdf') continue;
     const slot = document.querySelector(`[data-pdf-canvas="${CSS.escape(modal.previewInstance)}"]`);
-    if (slot && slot.firstChild !== state.canvas) slot.replaceChildren(state.canvas);
+    if (slot && slot.firstChild !== state.canvas) {
+      slot.replaceChildren(state.canvas);
+      if (!state.canvasMounted) performance.mark('smena:pdf:canvas-mounted');
+      state.canvasMounted = true;
+    }
   }
 }
 
@@ -225,6 +229,7 @@ async function showPdfPage(modal, state, number, refresh, worker) {
       if (!current()) return false;
       if (state.canvas) state.canvas.width = state.canvas.height = 0;
       state.canvas = canvas;
+      state.canvasMounted = false;
       canvas.className = 'file-preview-image';
       canvas.setAttribute('role', 'img');
       canvas.setAttribute('aria-label', modal.file.name);
