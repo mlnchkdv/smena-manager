@@ -52,6 +52,7 @@ import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from './shar
 import { TODAY, iso, updateToday, fmtTimestamp } from './core/utils.js';
 import { createPollCoordinator } from './core/poll-coordinator.js';
 import { retryPersonalPreferences } from './core/personal-preferences.js';
+import { preparePdfWorker } from './core/file-preview.js';
 
 void import('./core/deployment-recovery.js').then(module => module.installDeploymentRecovery(__SMENA_BUILD_ID__));
 A.retryOverlays = retryOverlays;
@@ -452,8 +453,15 @@ window.addEventListener('popstate', event => {
   S.ui.authBusy = true;
   let stageFrame;
   let user = null;
+  let preparedPdf;
+  let adoptedPdfWorker = false;
+  const pdfPreparation = new AbortController();
   try {
     user = await restoreSessionAndWorkspace({
+      prepareLinkedPdf(id) {
+        if (pdfPreparation.signal.aborted) return;
+        preparedPdf = { id, worker: preparePdfWorker(pdfPreparation.signal) };
+      },
       onStage: stage => {
         S.ui.bootstrapStage = stage;
         // Several stages can start in one task. Let their network requests
@@ -470,13 +478,26 @@ window.addEventListener('popstate', event => {
     if (user && !S.ui.needsOnboarding) {
       applyBrowserLocation();
       const opened = S.ui.modals.at(-1);
-      if (opened?.type === 'filePreview' && opened.file.mimeType === 'application/pdf') opened.directPdf = true;
+      if (opened?.type === 'filePreview' && opened.file.mimeType === 'application/pdf') {
+        opened.directPdf = true;
+        if (preparedPdf?.id === opened.file.id) {
+          opened.preparedPdfWorker = preparedPdf.worker;
+          adoptedPdfWorker = true;
+        }
+      }
     }
   } catch (error) {
     S.ui.authBusy = false;
     await (await import('./pages/workspace-recovery.js')).applyRecovery(error);
   } finally {
     cancelAnimationFrame(stageFrame);
+    if (!adoptedPdfWorker) {
+      pdfPreparation.abort();
+      void preparedPdf?.worker.then(
+        worker => worker.destroy(),
+        () => {},
+      );
+    }
   }
   const restoreView = user && !S.ui.needsOnboarding ? restoreDeploymentContext() : null;
   const saved = user && !S.ui.needsOnboarding ? workHistoryContext(history.state) : null;

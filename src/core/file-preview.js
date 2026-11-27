@@ -71,10 +71,29 @@ export function disposeClosedPreviews() {
   }
 }
 
+export function preparePdfWorker(signal) {
+  performance.mark('smena:pdf:worker-requested');
+  const pending = import('./pdf-preview.js').then(module => {
+    const worker = module.startPdfWorker(signal);
+    void worker.promise.then(
+      () => performance.mark('smena:pdf:worker-ready'),
+      () => {},
+    );
+    return worker;
+  });
+  void pending.catch(() => {});
+  return pending;
+}
+
 export function ensureFilePreview(modal, refresh, { measureImage = false } = {}) {
   modal.previewInstance ||= uid('preview');
   if (modal.preview) return;
   if (fileAccessLost(modal)) {
+    void modal.preparedPdfWorker?.then(
+      worker => worker.destroy(),
+      () => {},
+    );
+    delete modal.preparedPdfWorker;
     modal.preview = { kind: 'unavailable' };
     return;
   }
@@ -104,7 +123,8 @@ export function ensureFilePreview(modal, refresh, { measureImage = false } = {})
   const signal = state.controller.signal;
   // Start the renderer while the authorized content request is in flight. Each
   // preview owns its first-page worker, including when either operation fails.
-  const workerReady = policy.kind === 'pdf' ? import('./pdf-preview.js').then(module => module.startPdfWorker(signal)) : null;
+  const workerReady = policy.kind === 'pdf' ? modal.preparedPdfWorker || preparePdfWorker(signal) : null;
+  delete modal.preparedPdfWorker;
   async function load() {
     try {
       const [{ blob }, worker] = await Promise.all([downloadWorkspaceFile(modal.file.id, false, { signal, maxBytes: policy.maxBytes }), workerReady]);

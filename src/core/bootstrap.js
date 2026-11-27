@@ -39,6 +39,7 @@ import { loadWorkspaceResources } from '../shared/workspace-load.js';
 import { selectInitialWorkspace } from './workspace-selection.js';
 import { bootstrapRead } from '../shared/bootstrap-read.js';
 import { parseAppLocation } from '../shared/app-location.js';
+import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 
 const CONFLICT_RECOVERY_KEY = 'smena.recovery.conflict.v1';
 
@@ -97,7 +98,7 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
   configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data, resolvedDocuments, draftContext(S.ui.currentUser, data));
 }
 
-async function loadWorkspaceFor(user, phase = () => {}, directory) {
+async function loadWorkspaceFor(user, phase = () => {}, directory, prepareLinkedPdf) {
   phase('directory');
   await selectInitialWorkspace(user, { read: bootstrapRead, directory });
   const generation = getSessionGeneration();
@@ -107,7 +108,14 @@ async function loadWorkspaceFor(user, phase = () => {}, directory) {
   const [workspaceUser, resources] = await Promise.all([
     bootstrapRead(signal => getCurrentUser({ signal })),
     loadWorkspaceResources({
-      getWorkspace: () => bootstrapRead(signal => getWorkspace({ signal, headers })),
+      getWorkspace: async () => {
+        const snapshot = await bootstrapRead(signal => getWorkspace({ signal, headers }));
+        if (prepareLinkedPdf && headers['X-Smena-Open-File'] && generation === getSessionGeneration()) {
+          const file = snapshot.files?.find(item => item.id === route.key);
+          if (filePreviewPolicy(file).kind === 'pdf') prepareLinkedPdf(file.id);
+        }
+        return snapshot;
+      },
       getWorkspaceDocument: name => bootstrapRead(signal => getWorkspaceDocument(name, { signal })),
       getPersonalPreferences: () => bootstrapRead(signal => getPersonalPreferences({ signal })),
       getFileUploadPolicy: () => bootstrapRead(signal => getFileUploadPolicy({ signal })),
@@ -187,7 +195,7 @@ async function loadWorkspaceFor(user, phase = () => {}, directory) {
   return user;
 }
 
-export async function restoreSessionAndWorkspace({ onStage = () => {} } = {}) {
+export async function restoreSessionAndWorkspace({ onStage = () => {}, prepareLinkedPdf } = {}) {
   let stage = 'config';
   const phase = value => {
     performance.mark('smena:bootstrap:' + value);
@@ -195,13 +203,13 @@ export async function restoreSessionAndWorkspace({ onStage = () => {} } = {}) {
     onStage(value);
   };
   try {
-    return await restoreSession(phase);
+    return await restoreSession(phase, prepareLinkedPdf);
   } catch (error) {
     error.bootstrapStage = stage;
     throw error;
   }
 }
-async function restoreSession(phase) {
+async function restoreSession(phase, prepareLinkedPdf) {
   phase('config');
   const cookieOnly = !getSessionToken();
   try {
@@ -221,7 +229,7 @@ async function restoreSession(phase) {
     S.ui.authConfig = config;
     if (!session) return null;
     if (cookieOnly) setSessionToken('cookie');
-    const user = await loadWorkspaceFor(session.user, phase, session.workspaces);
+    const user = await loadWorkspaceFor(session.user, phase, session.workspaces, prepareLinkedPdf);
     S.ui.workspaceDirectoryPartial = session.partial === true;
     return user;
   } catch (error) {
