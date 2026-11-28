@@ -842,6 +842,7 @@ handlers.A.toggleHtmlInteraction = el => {
   if (m?.type !== 'filePreview' || m.preview?.kind !== 'html' || el.dataset.id !== m.file.id) return;
   m.interactiveHtml = !m.interactiveHtml;
   render();
+  document.getElementById('html-reader-mode')?.focus({ preventScroll: true });
 };
 handlers.A.stepFilePreview = el => {
   const m = S.ui.modals.at(-1),

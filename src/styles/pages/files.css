@@ -1336,7 +1336,9 @@
   .html-reader-mode {
     grid-area: 2 / 1;
     justify-self: start;
-    white-space: nowrap;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.2;
   }
   .html-reader-bar .file-preview-navigation {
     grid-area: 2 / 2 / 3 / 5;

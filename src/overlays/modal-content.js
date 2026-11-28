@@ -377,13 +377,17 @@ export function filePreviewModal(m, H) {
   const related = `${m.tid ? `<div class="row faint" style="font-size:12.5px">${ic('link', 13)}${tr('Attached to')} <button class="link" data-a="openTask" data-id="${m.tid}">${esc(task(m.tid)?.title)}</button></div>` : ''}<details class="file-preview-relations"><summary>Related materials</summary>${relationsPanel(`file:${f.id}`)}</details>`;
   if (preview.kind === 'html') {
     const action = m.interactiveHtml ? (isRussian() ? 'Выключить скрипты' : 'Disable scripts') : isRussian() ? 'Включить скрипты' : 'Enable scripts';
-    const hint = isRussian() ? 'Включайте скрипты только для файлов из доверенного источника.' : 'Enable scripts only for files from a trusted source.';
+    const safeMode = isRussian() ? 'Безопасный режим' : 'Safe mode';
+    const interactiveMode = isRussian() ? 'Интерактивный режим' : 'Interactive mode';
+    const hint = isRussian()
+      ? 'В безопасном режиме скрипты отключены. Интерактивный режим запускает встроенные скрипты файла. Включайте его только для файлов из доверенного источника.'
+      : 'Safe mode keeps scripts off. Interactive mode runs scripts embedded in the file. Use it only for files from a trusted source.';
     return `<header class="html-reader-bar">
       <h2 id="mt-filePreview" tabindex="-1" title="${esc(f.name)}" translate="no">${esc(f.name)}</h2>
       ${navigation}
-      <button type="button" id="html-reader-mode" class="btn btn-secondary html-reader-mode" data-a="toggleHtmlInteraction" data-id="${esc(f.id)}" title="${hint}" translate="no">${ic(m.interactiveHtml ? 'shield-check' : 'code', 15)}${action}</button>
+      <button type="button" id="html-reader-mode" class="btn btn-secondary html-reader-mode" data-a="toggleHtmlInteraction" data-id="${esc(f.id)}" aria-label="${action}" aria-describedby="html-reader-mode-help" title="${action}" translate="no">${ic(m.interactiveHtml ? 'code' : 'shield-check', 15)}${m.interactiveHtml ? interactiveMode : safeMode}</button>
       <details class="ui-menu html-reader-menu" ${disclosureAttributes('html-reader:' + m.previewInstance)}><summary class="ibtn" aria-label="More actions" title="${tr('More actions')}">${ic('ellipsis', 18)}</summary><div>
-      <p class="html-reader-name" translate="no">${esc(f.name)}</p>${metadata}
+      <p class="html-reader-name" translate="no">${esc(f.name)}</p><p id="html-reader-mode-help" translate="no">${hint}</p>${metadata}
       ${f.storageName ? `<button class="btn btn-ghost" data-a="downloadStoredFile" data-id="${esc(f.id)}">${ic('download', 15)}Download</button>` : ''}
       ${fileActions}${related}</div></details>
       <button class="ibtn html-reader-close" data-a="closeModal" aria-label="Close" title="${tr('Close')}">${ic('x', 18)}</button>
