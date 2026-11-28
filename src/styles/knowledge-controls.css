@@ -634,7 +634,6 @@
 
 @media (max-width: 640px) {
   .knowledge-content > .knowledge-breadcrumbs[data-root='true'],
-  .knowledge-content-actions > .knowledge-library-tools-trigger,
   .knowledge-import-hint {
     display: none;
   }
