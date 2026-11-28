@@ -1154,14 +1154,15 @@
   .project-file-context .proj-h .t {
     margin-bottom: 8px;
   }
-  .project-files-page .files-page-head {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 8px;
+  .files-page.project-files-page .files-page-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 4px;
     margin-bottom: 8px;
   }
   .project-files-page .files-context-summary {
-    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .project-files-page .files-project-total {
     display: none;
@@ -1173,11 +1174,9 @@
   .project-files-page .files-upload-actions .btn {
     min-height: var(--control-target);
   }
-  .project-files-page .workspace-files-toolbar {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .project-files-page .workspace-file-search {
-    grid-column: auto;
+  .files-page.project-files-page .workspace-files-toolbar .workspace-file-search {
+    flex: 1 1 100px;
+    min-width: 0;
   }
 }
 .files-exports {
