@@ -234,6 +234,14 @@ A.fileFolderPage = el => {
   first?.focus({ preventScroll: true });
   first?.scrollIntoView({ block: 'nearest' });
 };
+A.focusFileFolderResults = () => {
+  const results = document.getElementById('file-folder-search-results');
+  if (!results) return;
+  results.open = true;
+  const summary = results.querySelector('summary');
+  summary?.scrollIntoView({ block: 'nearest' });
+  summary?.focus({ preventScroll: true });
+};
 A.focusFileResults = () => {
   const file = document.querySelector('.workspace-file-open,.workspace-file-name');
   file?.focus({ preventScroll: true });

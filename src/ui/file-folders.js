@@ -38,7 +38,7 @@ export function visibleFileFolderKeys(projectId, currentFolder, index) {
 
 export function fileFolderSearchResults(projectId, currentFolder, index, query, recursive) {
   const terms = searchTerms(normalizeFileSearch(query));
-  if (!terms.length) return '';
+  if (!terms.length) return null;
   const matches = index.folderEntries
     .filter(({ project, folder, path, search }) => {
       if (folder.archived || (projectId !== 'all' && project.id !== projectId) || !terms.every(term => search.includes(term))) return false;
@@ -46,12 +46,15 @@ export function fileFolderSearchResults(projectId, currentFolder, index, query, 
       return recursive ? path.slice(0, -1).some(parent => parent.id === currentFolder.id) : folder.parentId === currentFolder.id;
     })
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
-  if (!matches.length) return '';
+  if (!matches.length) return null;
   const heading = isRussian() ? 'Найденные папки' : 'Matching folders';
-  return `<details class="file-folder-search-results" ${disclosureAttributes('file-search-folders:' + query)}>
+  return {
+    count: matches.length,
+    content: `<details id="file-folder-search-results" class="file-folder-search-results" ${disclosureAttributes('file-search-folders:' + query)}>
     <summary class="btn btn-secondary btn-sm" translate="no">${ic('folder', 16)}${heading} · ${matches.length}</summary>
     <ul>${matches.map(({ project, folder, path }) => `<li><button class="btn btn-ghost" data-a="openFileFolder" data-project="${esc(project.id)}" data-folder="${esc(folder.id)}" translate="no">${esc([project.name, ...path.map(item => item.name)].join(' / '))}</button></li>`).join('')}</ul>
-  </details>`;
+  </details>`,
+  };
 }
 
 export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, index, loadingCounts = false, selectable = false) {

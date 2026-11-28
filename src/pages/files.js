@@ -191,6 +191,7 @@ export function pageFiles(projectId = null) {
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
   const searched = Boolean(query || typeFilter !== 'all');
   const emptySearch = searched && !remote?.loading && window.total === 0;
+  const folderMatches = query && fileFolderSearchResults(projectFilter, currentFolder, index, query, S.ui.fileRecursive);
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
   const exportPanel = fileExportsPanel();
   const activeExports =
@@ -269,6 +270,7 @@ export function pageFiles(projectId = null) {
     )}
 
     ${filterCriteria(criteria, 'clearFileCriterion')}
+    ${folderMatches ? `<button class="btn btn-secondary btn-sm file-folder-results-jump" data-a="focusFileFolderResults" aria-controls="file-folder-search-results" translate="no">${ic('folder', 16)}${isRussian() ? 'Папки' : 'Folders'} · ${folderMatches.count}</button>` : ''}
     ${filtered && (!projectId || query || typeFilter !== 'all' || currentFolder) ? `<div class="files-filter-summary"><span role="status" aria-live="polite">${remote?.loading ? 'Loading files…' : `<span>Files found</span>: <b>${window.total}</b> / ${allTotal}`}</span>${currentFolder ? '<button class="btn btn-ghost btn-sm" data-a="searchAllFiles">Search all folders</button>' : ''}<button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
 
     ${
@@ -331,6 +333,6 @@ export function pageFiles(projectId = null) {
             )
     }
     ${window.total > 0 && !provisional ? `<div class="files-pagination"><label class="files-page-size"><span>Files per page</span><select class="select" id="files-page-size" data-in="filePageSize" aria-label="Files per page">${[25, 50, 100].map(size => `<option value="${size}" ${size === pageSize ? 'selected' : ''}>${size}</option>`).join('')}</select></label>${paginationHtml(window, pageKey)}${window.pages > 1 ? `<label class="files-page-size"><span>Go to page</span><input class="input files-page-input" id="files-page-jump" aria-label="Go to file page" type="number" min="1" max="${window.pages}" value="${window.page + 1}" data-key-enter="filePageJump" data-key="${esc(pageKey)}"></label>` : ''}</div>` : ''}
-    ${query ? fileFolderSearchResults(projectFilter, currentFolder, index, query, S.ui.fileRecursive) : ''}
+    ${folderMatches?.content || ''}
   </div>`;
 }

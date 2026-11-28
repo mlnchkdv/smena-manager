@@ -268,6 +268,10 @@
 .file-folder-search-results {
   margin-block: 12px;
 }
+.file-folder-results-jump {
+  min-height: var(--control-target);
+  margin-bottom: 8px;
+}
 .file-folder-search-results ul {
   max-height: 35dvh;
   overflow: auto;
