@@ -1155,19 +1155,29 @@
     margin-bottom: 8px;
   }
   .project-files-page .files-page-head {
-    gap: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    margin-bottom: 8px;
+  }
+  .project-files-page .files-context-summary {
+    flex: 1 1 auto;
+  }
+  .project-files-page .files-project-total {
+    display: none;
   }
   .project-files-page .files-upload-actions {
+    display: block;
     width: auto;
   }
   .project-files-page .files-upload-actions .btn {
     min-height: var(--control-target);
   }
   .project-files-page .workspace-files-toolbar {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
   }
   .project-files-page .workspace-file-search {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 }
 .files-exports {
@@ -1350,7 +1360,7 @@
   .file-row-details summary {
     cursor: pointer;
     align-content: center;
-    min-height: 32px;
+    min-height: var(--control-target);
     color: var(--text-2);
   }
   .file-row-details dl {
