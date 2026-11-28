@@ -1,4 +1,5 @@
 import { esc } from '../core/utils.js';
+import { isRussian } from '../core/i18n.js';
 import { ic } from '../core/icons.js';
 import { disclosureAttributes } from './disclosure.js';
 
@@ -9,5 +10,8 @@ export const collectionToolbar = (body, label, classes = '') =>
   `<section class="collection-toolbar ${esc(classes)}" role="group" aria-label="${esc(label)}">${body}</section>`;
 export const collectionSelection = (body, label, active, classes = '') =>
   `<section class="collection-selection ${esc(classes)}${active ? ' active' : ''}" role="group" aria-label="${esc(label)}">${body}</section>`;
+export const catalogPanelDone = () =>
+  `<div class="catalog-panel-footer"><button type="button" class="btn btn-primary" data-close-action-menu translate="no">${isRussian() ? 'Готово' : 'Done'}</button></div>`;
+
 export const collectionOptions = (body, { key, label = 'View options', active = false } = {}) =>
-  `<details class="ui-menu collection-options" ${disclosureAttributes(`collection-options:${key}`)}><summary class="btn btn-secondary" aria-label="${esc(label)}" title="${esc(label)}">${ic('sliders-horizontal', 15)}<span class="hide-m">${esc(label)}</span>${active ? '<span class="pdot" aria-label="Active filters"></span>' : ''}</summary><div class="collection-options-body">${body}</div></details>`;
+  `<details class="ui-menu collection-options" ${disclosureAttributes(`collection-options:${key}`)}><summary class="btn btn-secondary" aria-label="${esc(label)}" title="${esc(label)}">${ic('sliders-horizontal', 15)}<span class="hide-m">${esc(label)}</span>${active ? '<span class="pdot" aria-label="Active filters"></span>' : ''}</summary><div class="collection-options-body">${body}${catalogPanelDone()}</div></details>`;

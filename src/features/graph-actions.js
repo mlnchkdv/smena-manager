@@ -137,6 +137,7 @@ A.collapseGraphClusters = () => {
 };
 
 A.graphDisplayOptions = () => {
+  S.ui.graphFiltersOpen = false;
   const T = (en, ru) => (isRussian() ? ru : en);
   const option = (a, icon, en, ru, on) =>
     `<button class="btn btn-secondary" data-a="${a}" aria-pressed="${!!on}">${ic(icon, 16)}${T(en, ru)}<span class="sp"></span>${ic(on ? 'check' : 'minus', 14)}</button>`;

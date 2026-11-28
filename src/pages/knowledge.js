@@ -1,4 +1,4 @@
-import { collectionToolbar } from '../ui/collection-layout.js';
+import { catalogPanelDone, collectionToolbar } from '../ui/collection-layout.js';
 import { knowledgeBodyState, ensureKnowledgeBody } from '../core/knowledge-bodies.js';
 import { compactKnowledgePath } from '../ui/knowledge-location.js';
 import '../actions/material-actions.js';
@@ -310,7 +310,7 @@ export function pageKnowledge() {
             .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''} translate="no">${esc(tag)}</option>`)
             .join(
               '',
-            )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div></details>${knowledgeSelectionStart(visible)}`,
+            )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label>${catalogPanelDone()}</div></details>${knowledgeSelectionStart(visible)}`,
           'Knowledge search and filters',
           'knowledge-content-toolbar',
         )}${filterCriteria(criteria, 'clearKnowledgeCriterion')}${knowledgeQueryContext(folderFilter, activeFolder?.name || t(folderLabel(folderFilter, folders)))}

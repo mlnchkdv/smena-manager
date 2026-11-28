@@ -27,7 +27,7 @@ import '../features/files.js';
 import '../features/file-selection.js';
 import { demandFilePage } from '../features/file-catalog-demand.js';
 import { filePagePending } from '../ui/file-page-state.js';
-import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
+import { catalogPanelDone, collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { uploadsHtml } from '../ui/file-uploads.js';
 
@@ -261,7 +261,7 @@ export function pageFiles(projectId = null) {
           ([value, icon, label]) =>
             `<button class="${preference === value ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${value}" aria-label="${esc(tr(label))}" aria-pressed="${preference === value}">${ic(icon, 13)}<span translate="no">${(isRussian() ? { auto: 'Авто', grid: 'Плитка', list: 'Список' } : { auto: 'Auto', grid: 'Grid', list: 'List' })[value]}</span></button>`,
         )
-        .join('')}</div></div></details>
+        .join('')}</div>${catalogPanelDone()}</div></details>
     `,
       'File filters',
       'files-toolbar workspace-files-toolbar',

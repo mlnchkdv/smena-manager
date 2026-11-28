@@ -109,3 +109,24 @@
   min-inline-size: 0;
   overflow-wrap: anywhere;
 }
+.catalog-panel-footer {
+  display: none;
+}
+@media (max-width: 850px) {
+  :is(.files-filter-options.is-mobile, .knowledge-filter-options, .collection-options) > div:has(> .catalog-panel-footer) {
+    max-block-size: 64dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .catalog-panel-footer {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    padding-block: 8px 0;
+    background: var(--surface);
+  }
+  .catalog-panel-footer .btn {
+    min-block-size: 44px;
+  }
+}

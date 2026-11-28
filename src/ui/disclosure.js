@@ -146,6 +146,13 @@ document.addEventListener(
   'click',
   event => {
     if (selectMenu.el?.contains(event.target) && selectMenu.btn?.closest('.ui-menu[open]')) return;
+    const close = event.target.closest?.('[data-close-action-menu]');
+    const panel = close?.closest('.ui-menu[open]');
+    if (panel) {
+      setMenuOpen(panel, false);
+      panel.querySelector(':scope > summary')?.focus({ preventScroll: true });
+      return;
+    }
     const summary = event.target.closest?.('summary');
     const menu = summary?.parentElement;
     if (menu?.matches('.ui-menu')) {
