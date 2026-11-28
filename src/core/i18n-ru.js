@@ -517,6 +517,7 @@ export const RU = {
   'The import file must be smaller than 4 MB.': 'Файл импорта должен быть меньше 4 МБ.',
   'Only workspace administrators can add sign-in access.': 'Доступ ко входу добавляют только администраторы пространства.',
   'Project links': 'Ссылки на проекты',
+  'Project links require sign-in.': 'Для открытия ссылок на проекты требуется вход.',
   'Project links require sign-in. Anonymous public sharing is not enabled.': 'Для открытия ссылок требуется вход. Анонимный доступ не включён.',
   'Ask a workspace administrator to add you to this project. No automatic request was sent.':
     'Попросите администратора добавить вас в проект. Автоматический запрос не отправлялся.',
