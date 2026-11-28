@@ -91,27 +91,32 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 6px;
+    gap: 4px 8px;
   }
   .knowledge-content-head > div:first-child {
-    display: block;
+    display: contents;
   }
   .knowledge-content-head h1 {
+    grid-column: 1 / -1;
     min-width: 0;
-    flex: 1;
   }
   .knowledge-content-head > div:first-child > p {
     flex-shrink: 0;
     margin: 0;
   }
   .knowledge-folder-title-button {
+    width: 100%;
     max-width: 100%;
+    height: auto;
+    justify-content: flex-start;
   }
   .knowledge-folder-title-button > span {
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
     overflow: hidden;
-    text-overflow: ellipsis;
-    overflow-wrap: normal;
+    overflow-wrap: anywhere;
   }
   .knowledge-content-actions {
     justify-content: flex-end;
