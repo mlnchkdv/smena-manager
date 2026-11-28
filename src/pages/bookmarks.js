@@ -217,6 +217,10 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
               .join('')
     }
 
+    <div class="seg bookmark-search-scope" role="group" aria-label="${kc('Search in', 'Область поиска')}" translate="no">
+      <button type="button" class="on" data-a="searchBookmarkCatalog" aria-pressed="true">${kc('Bookmarks', 'Закладки')}</button>
+      <button type="button" data-a="searchBookmarkArchives" id="bookmark-search-saved" aria-haspopup="dialog">${kc('Saved copies', 'Сохранённые копии')}</button>
+    </div>
     ${collectionToolbar(
       `
       <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" id="bookmark-search" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks" style="padding-right:44px">${query ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="bookmark-search" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
@@ -235,7 +239,7 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
         .map(([v, label]) => `<option value="${v}" ${archiveFilters.archive === v ? 'selected' : ''}>${label}</option>`)
         .join(
           '',
-        )}</select></label><label class="field" translate="no">${kc('Captured since', 'Архивировано с даты')}<input class="input" type="date" data-in="bookmarkCapturedAfter" value="${esc(archiveFilters.capturedAfter)}"></label><button class="btn btn-secondary" data-a="searchBookmarkArchives" translate="no">${ic('search', 16)}${kc('Search saved pages', 'Поиск по сохранённым страницам')}</button>
+        )}</select></label><label class="field" translate="no">${kc('Captured since', 'Архивировано с даты')}<input class="input" type="date" data-in="bookmarkCapturedAfter" value="${esc(archiveFilters.capturedAfter)}"></label>
       ${segmentedControl({
         label: 'Bookmark status',
         key: 'bookmarkScope',

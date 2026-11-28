@@ -1,3 +1,12 @@
+.bookmark-search-scope {
+  display: inline-flex;
+  max-width: 100%;
+  margin-bottom: 8px;
+}
+.bookmark-search-scope > button {
+  min-height: var(--control-target);
+  white-space: normal;
+}
 .bookmark-library .bookmark-toolbar {
   display: grid;
   grid-template-columns: minmax(160px, 1fr) minmax(160px, 240px) auto auto;

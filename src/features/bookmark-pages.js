@@ -5,7 +5,7 @@ import { offlineItems, putOffline, removeOffline } from '../core/offline-library
 import { isRussian } from '../core/i18n.js';
 import { normalizedPageUrl, applyBookmarkMetadata } from '../shared/bookmark-metadata.js';
 import { A, IN } from '../actions/actions.js';
-import { openModal } from '../overlays/modals.js';
+import { closeModal, openModal } from '../overlays/modals.js';
 import { render } from '../shell/render.js';
 import { esc, fmtTimestamp } from '../core/utils.js';
 import { refreshWorkspaceFromServer } from '../core/bootstrap.js';
@@ -491,7 +491,11 @@ function archiveSearchDialog(m, heading) {
       ? `<button id="bookmark-archive-search-page" class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-more="true" ${m.busy || m.searched !== m.query.trim() ? 'disabled' : ''}>${words('Check next versions', 'Проверить следующие версии')}</button>`
       : '';
   return `${heading(title)}<div class="modal-b" data-keep="bookmark-archive-search" translate="no">
-    <form data-submit="runBookmarkArchiveSearch" class="bookmark-archive-search-form"><label class="field">${words('Words in saved pages', 'Слова в сохранённых страницах')}<input id="bookmark-archive-search-query" class="input" type="search" data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'readonly' : ''}></label><button class="btn btn-primary" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button></form>
+    <div class="seg bookmark-search-scope" role="group" aria-label="${words('Search in', 'Область поиска')}">
+      <button type="button" data-a="searchBookmarkCatalog">${words('Bookmarks', 'Закладки')}</button>
+      <button type="button" class="on" aria-pressed="true" data-a="focusBookmarkArchiveQuery">${words('Saved copies', 'Сохранённые копии')}</button>
+    </div>
+    <form data-submit="runBookmarkArchiveSearch" class="bookmark-archive-search-form"><label class="field">${words('Words in saved pages', 'Слова в сохранённых страницах')}<input id="bookmark-archive-search-query" class="input" type="search" autofocus data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'readonly' : ''}></label><button class="btn btn-primary" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button></form>
     <p class="hint">${words('Searches the text in saved copies, including versions removed from the active list.', 'Поиск по тексту сохранённых копий, включая версии, убранные из активных.')}</p>
     ${results.length ? `<ul class="bookmark-archive-search-results">${results.join('')}</ul>` : ''}
     ${empty ? `<p>${words('No matching saved pages.', 'Совпадений в сохранённых страницах нет.')}</p>` : ''}
@@ -504,17 +508,29 @@ function archiveSearchDialog(m, heading) {
       : ''
   }`;
 }
-A.searchBookmarkArchives = () =>
-  openModal({
-    type: 'bookmarkArchiveSearch',
-    query: S.ui.bookmarkQuery || '',
-    results: [],
-    generation: getSessionGeneration(),
-    onClose() {
-      this.controller?.abort();
+A.focusBookmarkArchiveQuery = () => document.getElementById('bookmark-archive-search-query')?.focus({ preventScroll: true });
+A.searchBookmarkCatalog = () => {
+  const archive = S.ui.modals.at(-1);
+  if (archive?.type === 'bookmarkArchiveSearch') {
+    S.ui.bookmarkQuery = archive.query;
+    closeModal();
+  }
+  document.getElementById('bookmark-search')?.focus({ preventScroll: true });
+};
+A.searchBookmarkArchives = el =>
+  openModal(
+    {
+      type: 'bookmarkArchiveSearch',
+      query: S.ui.bookmarkQuery || '',
+      results: [],
+      generation: getSessionGeneration(),
+      onClose() {
+        this.controller?.abort();
+      },
+      render: archiveSearchDialog,
     },
-    render: archiveSearchDialog,
-  });
+    el,
+  );
 A.runBookmarkArchiveSearch = async el => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'bookmarkArchiveSearch' || m.busy) return;
