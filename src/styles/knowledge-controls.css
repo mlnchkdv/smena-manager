@@ -646,7 +646,28 @@
     padding-block: 12px;
   }
   .knowledge-content-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 8px;
     margin-bottom: 8px;
+  }
+  .knowledge-content-head > div:first-child {
+    display: contents;
+  }
+  .knowledge-content-head h1 {
+    grid-column: 1 / -1;
+  }
+  .knowledge-content-head .knowledge-folder-title-button {
+    width: 100%;
+    height: auto;
+    justify-content: flex-start;
+  }
+  .knowledge-folder-title-button > span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow: hidden;
   }
   .knowledge-content-head p {
     margin: 2px 0 0;
