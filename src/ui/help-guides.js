@@ -1,6 +1,14 @@
 import { isRussian } from '../core/i18n.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
+import { S } from '../core/store.js';
+import { IN } from '../actions/actions.js';
+import { render } from '../shell/render.js';
+import { searchTerms } from '../shared/search-query.js';
+IN.helpGuideQuery = el => {
+  S.ui.helpGuideQuery = el.value;
+  render();
+};
 const T = (en, ru) => (isRussian() ? ru : en);
 export function helpGuides() {
   const guides = [
@@ -113,5 +121,11 @@ export function helpGuides() {
       ],
     ],
   ];
-  return `<section class="help-guides" aria-label="${T('Task guides', 'Инструкции по задачам')}" translate="no">${guides.map(([title, route, steps]) => `<details><summary>${esc(title)}</summary><ol>${steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol><button class="btn btn-secondary btn-sm" data-a="go" data-r="${route}">${ic('arrow-up-right', 14)}${T('Open section', 'Открыть раздел')}</button></details>`).join('')}</section>`;
+  const query = S.ui.helpGuideQuery || '';
+  const terms = searchTerms(query);
+  const visible = guides.filter(([title, , steps]) => {
+    const copy = [title, ...steps].join(' ').toLocaleLowerCase();
+    return terms.every(term => copy.includes(term));
+  });
+  return `<section class="help-guides" aria-label="${T('Task guides', 'Инструкции по задачам')}" translate="no"><label class="field">${T('Search guides', 'Поиск по инструкциям')}<input class="input" id="help-guide-search" type="search" data-in="helpGuideQuery" value="${esc(query)}" maxlength="160"></label>${visible.length ? '' : `<p class="hint" role="status">${T('No guides found. Try a shorter search.', 'Инструкции не найдены. Попробуйте сократить запрос.')}</p>`}${visible.map(([title, route, steps]) => `<details><summary>${esc(title)}</summary><ol>${steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol><button class="btn btn-secondary btn-sm" data-a="go" data-r="${route}">${ic('arrow-up-right', 14)}${T('Open section', 'Открыть раздел')}</button></details>`).join('')}</section>`;
 }

@@ -104,7 +104,8 @@ function authSessionsPanel() {
     : S.ui.authSessionsError
       ? `<div class="alert warn auth-sessions-error" role="alert">${ic('triangle-alert', 16)}<span class="grow">${esc(S.ui.authSessionsError)}</span><button class="btn btn-secondary btn-sm" data-a="loadAuthSessions">Try again</button></div>`
       : Array.isArray(sessions) && sessions.length
-        ? `<div class="auth-session-list">${sessions
+        ? `<div class="auth-session-list">${[...sessions]
+            .sort((a, b) => Number(b.current) - Number(a.current))
             .map(
               session => `<div class="auth-session-row" data-current="${session.current ? 'true' : 'false'}">
                 <span class="ftype auth-session-icon">${ic(session.mobile ? 'smartphone' : 'monitor', 18)}</span>
@@ -406,6 +407,7 @@ export function settingsBody(sec, title) {
     case 'notif-email':
       return (
         H('Choose which emails you receive.') +
+        diagnosticsLink() +
         srow('Mentions', 'When someone @mentions you.', tog('email_mention', np.email_mention, 'np')) +
         srow('Assignments', 'When a task is assigned to you.', tog('email_assign', np.email_assign, 'np')) +
         srow('Comments', 'On tasks you created or are assigned.', tog('email_comment', np.email_comment, 'np')) +
@@ -416,8 +418,7 @@ export function settingsBody(sec, title) {
           'Daily digest',
           'A summary of your open tasks after the daily scheduled run, on weekdays in your time zone.',
           tog('email_digest', np.email_digest, 'np'),
-        ) +
-        diagnosticsLink()
+        )
       );
     case 'notif-push': {
       const permission = browserNotificationState();
@@ -438,14 +439,13 @@ export function settingsBody(sec, title) {
         : '';
       return (
         H(`Receive system alerts even when ${PRODUCT_NAME} is closed.`) +
-        `<div class="col" style="gap:8px;margin-bottom:14px"><div class="alert ${state[1]}">${ic(pushState === 'ready' ? 'circle-check' : ['default', 'idle', 'checking'].includes(pushState) ? 'bell-ring' : 'circle-alert', 16)}<span class="grow">${state[0]}</span></div>${retry ? `<div>${retry}</div><p class="hint">Selected types are saved separately from this device connection.</p>` : ''}</div>` +
+        `<div class="col" style="gap:8px;margin-bottom:14px"><div class="alert ${state[1]}">${ic(pushState === 'ready' ? 'circle-check' : ['default', 'idle', 'checking'].includes(pushState) ? 'bell-ring' : 'circle-alert', 16)}<span class="grow">${state[0]}</span></div>${retry ? `<div>${retry}</div><p class="hint">Selected types are saved separately from this device connection.</p>` : ''}${diagnosticsLink()}</div>` +
         srow('Mentions', '', tog('push_mention', np.push_mention, 'np')) +
         srow('Assignments', '', tog('push_assign', np.push_assign, 'np')) +
         srow('Comments', '', tog('push_comment', np.push_comment, 'np')) +
         srow('Task status changes', '', tog('push_update', np.push_update, 'np')) +
         srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('push_due', np.push_due, 'np')) +
-        srow('Security alerts', 'When a new device signs in to your account.', tog('push_security', np.push_security !== false, 'np')) +
-        diagnosticsLink()
+        srow('Security alerts', 'When a new device signs in to your account.', tog('push_security', np.push_security !== false, 'np'))
       );
     }
     case 'notif-delivery':
@@ -524,7 +524,8 @@ export function settingsBody(sec, title) {
     case 'security':
       return (
         H('Sign-in security is managed by your Google Account.') +
-        `<div class="panel account-security-card"><span class="ftype account-security-icon">${ic('shield-check', 20)}</span><div class="grow"><h2>Google Account security</h2><p class="muted">Change your password, configure two-step verification, and review signed-in devices in Google Account settings.</p><div class="account-security-email">${ic('mail', 14)}<span>${esc(me()?.email || '')}</span></div><a class="btn btn-primary account-security-action" href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer">Open Google security${ic('external-link', 14)}</a></div></div><p class="hint account-security-hint">smena.team never stores your Google password or recovery codes.</p>${authSessionsPanel()}`
+        authSessionsPanel() +
+        `<div class="panel account-security-card"><span class="ftype account-security-icon">${ic('shield-check', 20)}</span><div class="grow"><h2>Google Account security</h2><p class="muted">Change your password, configure two-step verification, and review signed-in devices in Google Account settings.</p><div class="account-security-email">${ic('mail', 14)}<span>${esc(me()?.email || '')}</span></div><a class="btn btn-primary account-security-action" href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer">Open Google security${ic('external-link', 14)}</a></div></div><p class="hint account-security-hint">smena.team never stores your Google password or recovery codes.</p>`
       );
   }
   return page404();
