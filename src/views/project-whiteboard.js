@@ -161,7 +161,7 @@ export function projectWhiteboard(project) {
         `<button class="whiteboard-edge-row" data-a="whiteboardSelectEdge" data-id="${esc(edge.id)}">${ic('move-right', 14)}<span>${esc(whiteboardConnectionText(board, edge, whiteboardLabel))}</span><small>${esc(edge.label)}</small></button>`,
     )
     .join('');
-  return `<section class="project-whiteboard${state.focus ? ' is-focused' : ''}${state.presentationId ? ' is-presenting' : ''}" data-project="${esc(project.id)}" ${connectionSource ? 'data-connecting="true"' : ''} data-has-selection="${Boolean(selectedIds.length || state.selectedEdge)}" data-multi-select="${!!state.multiSelect}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar">
+  return `<section class="project-whiteboard${state.focus ? ' is-focused' : ''}${state.presentationId ? ' is-presenting' : ''}" data-project="${esc(project.id)}" ${connectionSource ? 'data-connecting="true"' : ''} data-has-selection="${Boolean(selectedIds.length || state.selectedEdge)}" data-multi-select="${!!state.multiSelect}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar" id="whiteboard-edit-toolbar" role="group" aria-label="${T('Canvas editing tools', 'Инструменты редактирования холста')}">
   ${
     editable
       ? `<details class="ui-menu whiteboard-add" ${disclosureAttributes('whiteboard-add:' + project.id)}><summary class="btn btn-primary btn-sm" aria-label="${T('Add', 'Добавить')}">${ic('plus', 15)}<span>${T('Add', 'Добавить')}</span></summary><div>${[
