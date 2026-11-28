@@ -131,24 +131,26 @@ export function drawerHtml(t) {
         : `
       ${t.status === 'done' ? `<div class="alert ok task-state-notice" style="margin-bottom:12px">${ic('circle-check', 15)}<span>Completed ${t.completedAt ? ago(t.completedAt) : ''}. ${editable ? `<button class="link" data-a="toggleDone" data-id="${t.id}">Reopen task</button>` : ''}</span></div>` : isOver(t) ? `<div class="alert danger task-state-notice" style="margin-bottom:12px">${ic('clock-alert', 15)}<span>Overdue by ${-diffD(parse(t.due), TODAY)} day${-diffD(parse(t.due), TODAY) > 1 ? 's' : ''}. ${editable ? `<button class="link" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}">Reschedule</button>` : ''}</span></div>` : ''}
       <textarea class="ttl-edit" id="d-title" ${editable ? '' : 'readonly'} rows="1" data-autosize data-blur="commitDrawerTitle" data-key-enter="blur" data-id="${t.id}" aria-label="Task title">${esc(t.title)}</textarea>
-      <button class="btn btn-ghost btn-sm task-comments-jump" data-a="jumpTaskComments">${ic('message-square', 14)}Go to comments</button>
       <dl class="kv task-properties" style="margin-top:8px">
         ${prop('circle-dot', 'Status', cellStatus(t))}
         ${prop('user', 'Assignee', cellAssignee(t))}
         ${prop('calendar', 'Due date', cellDue(t))}
-        ${prop('folder', 'Project', cellProject(t))}
-        ${prop('signal-high', 'Priority', cellPrio(t))}
+
         ${t.labels.length ? prop('tag', 'Labels', `<button ${disabled} class="pillbtn ${t.labels.length ? '' : 'empty'}" data-a="pop" data-pop="labels" data-id="${t.id}" style="flex-wrap:wrap;height:auto;min-height:26px;padding:3px 7px">${t.labels.length ? t.labels.map(lbl).join('') : ic('tag', 13) + 'Add labels'}</button>`) : ''}
         ${t.deps.length ? prop('git-branch', 'Blocked by', `<button ${disabled} class="pillbtn ${t.deps.length ? '' : 'empty'}" data-a="pop" data-pop="deps" data-id="${t.id}" style="height:auto;min-height:26px;flex-wrap:wrap">${t.deps.length ? t.deps.map(d => (task(d) ? `<span class="depchip mono" style="font-size:11px;padding:1px 5px;border-radius:4px;background:var(--surface-3)">${task(d).key}</span><span class="trunc" style="max-width:160px">${esc(task(d).title)}</span>` : '')).join('') : ic('git-branch', 13) + 'None'}</button>`) : ''}
       </dl>
       <details class="task-extra-properties" ${disclosureAttributes('task-properties:' + t.id)}><summary>More properties</summary><dl class="kv task-properties">
+        ${prop('folder', 'Project', cellProject(t))}
+        ${prop('signal-high', 'Priority', cellPrio(t))}
         ${cycleControl ? prop('repeat', 'Cycle', cycleControl) : ''}
         ${prop('calendar-arrow-up', 'Start date', `<button ${disabled} class="pillbtn ${t.start ? '' : 'empty'}" data-a="pop" data-pop="date" data-field="start" data-id="${t.id}">${ic('calendar', 13)}${t.start ? fmtDate(t.start) : 'Set date'}</button>`)}
         ${prop('repeat', 'Repeat', `<button ${disabled} class="pillbtn ${t.recur ? '' : 'empty'}" data-a="pop" data-pop="recur" data-id="${t.id}">${ic('repeat', 13)}${t.recur || 'Does not repeat'}</button>`)}
         ${prop('timer', 'Estimate', `<button ${disabled} class="pillbtn ${t.estimate ? '' : 'empty'}" data-a="pop" data-pop="estimate" data-id="${t.id}">${ic('timer', 13)}${t.estimate ? esc(t.estimate) : 'Add estimate'}</button>`)}
         ${!t.labels.length ? prop('tag', 'Labels', `<button ${disabled} class="pillbtn ${t.labels.length ? '' : 'empty'}" data-a="pop" data-pop="labels" data-id="${t.id}" style="flex-wrap:wrap;height:auto;min-height:26px;padding:3px 7px">${t.labels.length ? t.labels.map(lbl).join('') : ic('tag', 13) + 'Add labels'}</button>`) : ''}
         ${!t.deps.length ? prop('git-branch', 'Blocked by', `<button ${disabled} class="pillbtn ${t.deps.length ? '' : 'empty'}" data-a="pop" data-pop="deps" data-id="${t.id}" style="height:auto;min-height:26px;flex-wrap:wrap">${t.deps.length ? t.deps.map(d => (task(d) ? `<span class="depchip mono" style="font-size:11px;padding:1px 5px;border-radius:4px;background:var(--surface-3)">${task(d).key}</span><span class="trunc" style="max-width:160px">${esc(task(d).title)}</span>` : '')).join('') : ic('git-branch', 13) + 'None'}</button>`) : ''}
-      </dl></details>      <div class="dsec"><div class="dsec-h"><h3 id="d-desc-l">Description</h3><div class="rte-tb" ${editable ? '' : 'hidden'} role="toolbar" aria-label="Formatting" aria-controls="d-desc">
+      </dl></details>
+      <button class="btn btn-ghost btn-sm task-comments-jump" data-a="jumpTaskComments">${ic('message-square', 14)}Go to comments</button>
+      <div class="dsec"><div class="dsec-h"><h3 id="d-desc-l">Description</h3><div class="rte-tb" ${editable ? '' : 'hidden'} role="toolbar" aria-label="Formatting" aria-controls="d-desc">
           ${[
             ['bold', 'bold', 'Bold'],
             ['italic', 'italic', 'Italic'],
