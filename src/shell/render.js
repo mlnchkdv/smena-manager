@@ -130,6 +130,7 @@ export const FKEYS = [
   'id',
   'r',
   'tab',
+  'view',
   'pop',
   'ctx',
   'k',

@@ -222,7 +222,10 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
     (await page.request.post(researchRoot + '/commands', { data: { operationId: crypto.randomUUID(), action: 'enable', enabled: true } })).ok(),
   ).toBeTruthy();
   await page.goto(`/e2e-team/project/${researchProject}/research`);
-  await page.locator('[data-a="researchView"][data-view="journal"]').click();
+  const journal = page.locator('[data-a="researchView"][data-view="journal"]');
+  await journal.press('Enter');
+  await expect(journal).toHaveAttribute('aria-pressed', 'true');
+  await expect(journal).toBeFocused();
   await page.locator('[data-a="researchNew"][data-kind="observation"]').click();
   await page.locator('[data-in="researchField"][data-field="title"]').fill('CI research uncertain recovery');
   await page.locator('[data-in="researchField"][data-field="body"]').fill('Synthetic research journal / Служебный журнал. No scientific result.');
