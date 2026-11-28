@@ -17,7 +17,7 @@ export function catalogFilterFooter(resetAction, count, closeAction) {
   const [reset, done] = isRussian() ? ['Сбросить фильтры', 'Готово'] : ['Clear filters', 'Done'];
   return `<div class="catalog-panel-footer catalog-filter-footer" translate="no">
     <button type="button" class="btn btn-ghost" data-a="${esc(resetAction)}" data-keep-menu ${count ? '' : 'disabled'}>${reset}</button>
-    <button type="button" class="btn btn-primary" data-filter-done ${closeAction ? `data-a="${esc(closeAction)}"` : 'data-close-action-menu'}>${done}</button>
+    <button type="button" id="${esc(resetAction)}-done" class="btn btn-primary" data-filter-done ${closeAction ? `data-a="${esc(closeAction)}"` : 'data-close-action-menu'}>${done}</button>
   </div>`;
 }
 

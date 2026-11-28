@@ -1136,7 +1136,8 @@ A.resetFilePanelFilters = () => {
   S.ui.fileSort = 'date';
   saveFilePreferences();
   render();
-  document.querySelector('.files-filter-options [data-filter-done]')?.focus({ preventScroll: true });
+  const done = document.getElementById('resetFilePanelFilters-done');
+  (done?.getClientRects().length ? done : document.getElementById('workspace-file-q'))?.focus({ preventScroll: true });
 };
 A.searchAllFiles = () => {
   S.ui.fileProject = 'all';
