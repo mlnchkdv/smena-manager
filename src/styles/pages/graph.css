@@ -1227,9 +1227,6 @@
     align-items: center;
     gap: 4px 8px;
   }
-  .graph-page .graph-toolbar .graph-search {
-    flex: 1 1 100%;
-  }
   .graph-page .graph-toolbar .graph-display-trigger {
     width: 44px;
     min-width: 44px;
@@ -1251,13 +1248,13 @@
     align-items: center;
   }
   .graph-page .graph-toolbar .graph-search {
-    flex: 1 1 130px;
+    flex: 1 1 100%;
     min-width: 0;
     width: auto;
     grid-column: auto;
   }
-  .graph-toolbar:not(.options-open) > .seg {
-    display: none;
+  .graph-page .graph-toolbar .seg button > span {
+    display: inline;
   }
   .graph-page .graph-filter-toggle {
     width: auto;
