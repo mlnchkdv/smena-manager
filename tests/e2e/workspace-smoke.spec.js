@@ -379,6 +379,20 @@ test('whiteboard native and Canvas interchange previews limitations checks acces
   expect((await stale.json()).code).toBe('WHITEBOARD_REPLACE_STALE');
 });
 
+test('clearing the phone graph search keeps focus for another query', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await signIn(page);
+  await page.goto('/e2e-team/graph');
+  const search = page.locator('#graph-search');
+  await search.fill('First query');
+  await expect(page.locator('.graph-find > summary')).toBeHidden();
+  await page.locator('[data-a="clearGraphQuery"]').click();
+  await expect(search).toHaveValue('');
+  await expect(search).toBeFocused();
+  await page.keyboard.type('Next query');
+  await expect(search).toHaveValue('Next query');
+});
+
 test('personal graph and board layouts retain camera pins filters and account isolation', async ({ page, browser }) => {
   test.setTimeout(240000);
   await signIn(page);

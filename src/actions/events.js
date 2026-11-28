@@ -7,10 +7,13 @@ import { render, revealActiveSetting } from '../shell/render.js';
 import { placePop } from '../overlays/popovers.js';
 import { A, BLUR, DBL, IN } from './actions.js';
 
-// WebKit can blur the search input on press and move its clear button
-// before release. Keep the field focused; click still performs the action.
+// WebKit can blur a search input on press and move its clear button
+// before release. Keep the field focused so the click reaches the button.
 document.addEventListener('mousedown', e => {
-  if (e.button === 0 && document.activeElement?.id === 'workspace-file-q' && e.target.closest?.('[data-a="clearFileQuery"]')) e.preventDefault();
+  if (e.button !== 0) return;
+  const action = e.target.closest?.('[data-a]')?.dataset.a;
+  const active = document.activeElement?.id;
+  if ((action === 'clearFileQuery' && active === 'workspace-file-q') || (action === 'clearGraphQuery' && active === 'graph-search')) e.preventDefault();
 });
 document.addEventListener(
   'click',
