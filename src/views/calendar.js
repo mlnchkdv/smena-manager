@@ -93,7 +93,8 @@ export function calendarHtml(ts, opt = {}) {
       })
       .join('')}</div>`;
   }
-  const currentPeriod = mode === 'week' ? diffD(startOfWeek(cur), startOfWeek(TODAY)) === 0 : cur.getMonth() === TODAY.getMonth() && cur.getFullYear() === TODAY.getFullYear();
+  const currentPeriod =
+    mode === 'week' ? diffD(startOfWeek(cur), startOfWeek(TODAY)) === 0 : cur.getMonth() === TODAY.getMonth() && cur.getFullYear() === TODAY.getFullYear();
   const projs = [...new Set(ts.map(t => t.project))].map(proj).filter(Boolean);
   const layerCount = [1, 2, 4, 8].filter(bit => (S.prefs.calendarLayers ?? 3) & bit).length;
   return `<div class="cal ${S.ui.calendarControlsOpen ? 'controls-open' : ''}">

@@ -110,15 +110,15 @@
     width: 100%;
   }
   .search-page .search-material-row {
-  width: 100%;
-  min-height: var(--control-target);
-  text-align: start;
-}
-.search-material-row > .grow {
-  gap: 2px;
-  overflow-wrap: anywhere;
-}
-.search-page .mini {
+    width: 100%;
+    min-height: var(--control-target);
+    text-align: start;
+  }
+  .search-material-row > .grow {
+    gap: 2px;
+    overflow-wrap: anywhere;
+  }
+  .search-page .mini {
     flex-wrap: wrap;
     min-height: 44px;
   }

@@ -73,7 +73,9 @@ export function timelineHtml(ts, key, p) {
     const dates = page.items.map(item => item.date);
     const first = dates[anchored.afterLast ? dates.length - 1 : 0];
     const last = dates[anchored.afterLast ? 0 : dates.length - 1];
-    const pageRange = first ? `<p class="hint" translate="no">${isRussian() ? 'Даты на странице' : 'Dates on this page'} · ${fmtDate(first, true)}${first !== last ? ' – ' + fmtDate(last, true) : ''}</p>` : '';
+    const pageRange = first
+      ? `<p class="hint" translate="no">${isRussian() ? 'Даты на странице' : 'Dates on this page'} · ${fmtDate(first, true)}${first !== last ? ' – ' + fmtDate(last, true) : ''}</p>`
+      : '';
     return `<div class="tl-agenda" data-keep="timeline-agenda:${key}">${pageRange}${anchorHint}${anchored.afterLast ? '<p class="hint" role="status">No later items. Showing the nearest earlier items.</p>' : ''}${
       page.items
         .map((item, i) => {

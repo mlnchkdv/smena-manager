@@ -112,9 +112,10 @@ export function researchFormFields(m) {
     (m.reviewers || []).map(member => [member.id, member.name]),
   );
   const notes = `<label class="field">${rw('Notes', 'Описание')}<textarea class="textarea" rows="6" data-in="researchField" data-field="body" maxlength="64000">${esc(record.body || '')}</textarea></label>`;
-  const additionalNotes = kind === 'experiment'
-    ? `<details ${researchDisclosure(m, 'experiment-notes')}><summary>${rw('Description', 'Описание')}</summary><div class="research-form-section">${notes}</div></details>`
-    : notes;
+  const additionalNotes =
+    kind === 'experiment'
+      ? `<details ${researchDisclosure(m, 'experiment-notes')}><summary>${rw('Description', 'Описание')}</summary><div class="research-form-section">${notes}</div></details>`
+      : notes;
   const amendment =
     m.original && kind === 'run' && ['completed', 'failed', 'cancelled'].includes(data.state)
       ? field('amendment', rw('Reason for this correction', 'Причина этого исправления'), data.amendment)

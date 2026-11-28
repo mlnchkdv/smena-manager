@@ -113,7 +113,9 @@ export function permsTable() {
           )
           .join('')}</tr>`,
     )
-    .join('')}</tbody></table></div><p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><details class="permission-notes"><summary>About workspace roles</summary><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p></details>`;
+    .join(
+      '',
+    )}</tbody></table></div><p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><details class="permission-notes"><summary>About workspace roles</summary><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p></details>`;
 }
 export function teamsGrid() {
   return `<div class="pgrid">${teamsList()

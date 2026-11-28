@@ -53,8 +53,7 @@ export function pageArchive() {
     const target = plan.target || t('No folder');
     return `<span class="archive-restore-target" title="${esc(target)}">${t('Destination')} · <span translate="no">${esc(target)}</span></span>`;
   };
-  const bookmarkBatch =
-    tab === 'trash' ? page.items.filter(item => item.kind === 'bookmark' && !restorePlan(item).error) : [];
+  const bookmarkBatch = tab === 'trash' ? page.items.filter(item => item.kind === 'bookmark' && !restorePlan(item).error) : [];
   const restoreBookmarks =
     bookmarkBatch.length > 1
       ? `<button class="btn btn-secondary archive-bookmark-batch" data-a="restoreTrashBookmarks" data-ids="${esc(JSON.stringify(bookmarkBatch.map(item => item.id)))}" translate="no">${ic('rotate-ccw', 15)}${isRussian() ? 'Восстановить закладки на странице' : 'Restore bookmarks on this page'} (${bookmarkBatch.length})</button>`
@@ -90,10 +89,32 @@ export function pageArchive() {
   const body =
     tab === 'trash'
       ? page.total
-        ? `<div class="panel" style="overflow:hidden">${page.items.map(item => {
-          const plan = restorePlan(item);
-          return row(ic(item.kind === 'project' ? 'folder-kanban' : item.kind === 'file' ? 'paperclip' : item.kind === 'note' ? 'file-text' : item.kind === 'bookmark' ? 'bookmark' : 'circle-check', 15), item.name, `${t(trashNames[item.kind] || 'Item')} · ${restoreTarget(plan)}`, item.deletedAt ? 'Deleted ' + ago(item.deletedAt) : 'Deleted', 'restoreTrash', 'purgeTrash', item.id, !plan.error);
-        }).join('')}</div>`
+        ? `<div class="panel" style="overflow:hidden">${page.items
+            .map(item => {
+              const plan = restorePlan(item);
+              return row(
+                ic(
+                  item.kind === 'project'
+                    ? 'folder-kanban'
+                    : item.kind === 'file'
+                      ? 'paperclip'
+                      : item.kind === 'note'
+                        ? 'file-text'
+                        : item.kind === 'bookmark'
+                          ? 'bookmark'
+                          : 'circle-check',
+                  15,
+                ),
+                item.name,
+                `${t(trashNames[item.kind] || 'Item')} · ${restoreTarget(plan)}`,
+                item.deletedAt ? 'Deleted ' + ago(item.deletedAt) : 'Deleted',
+                'restoreTrash',
+                'purgeTrash',
+                item.id,
+                !plan.error,
+              );
+            })
+            .join('')}</div>`
         : `<div class="panel">${empty('trash-2', trash.length ? 'No matching items' : 'Trash is empty', trash.length ? 'Change the search or filters.' : 'Deleted tasks, projects, notes, bookmarks, and files will appear here.', '')}</div>`
       : `<div class="panel">${
           ['tasks', 'projects']
