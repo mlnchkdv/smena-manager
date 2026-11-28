@@ -90,7 +90,7 @@
 }
 
 @media (max-width: 640px) {
-  .compact-search-bar .compact-search-field:focus-within > :is(.search-clear, .knowledge-search-clear, .graph-search-clear) {
+  .compact-search-bar .compact-search-field:focus-within > :is(.search-clear, .knowledge-search-clear) {
     position: static;
     transform: none;
     flex: 0 0 44px;

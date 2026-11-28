@@ -345,6 +345,9 @@
   margin-bottom: 6px;
 }
 @media (max-width: 640px) {
+  .graph-search:has(.graph-query-field:focus-within) > .graph-find {
+    display: none;
+  }
   .graph-find > summary {
     min-height: 44px;
   }
