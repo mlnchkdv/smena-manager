@@ -73,7 +73,14 @@ document.addEventListener(
           after = menu.querySelector(':scope > summary')?.getBoundingClientRect();
         // Fractional viewport rounding/scroll-into-view must not dismiss a menu
         // between pointer down and activation of an otherwise visible option.
-        if (!before || !after || Math.hypot(after.x - before.x, after.y - before.y) > 2) setMenuOpen(menu, false);
+        if (!before || !after || Math.hypot(after.x - before.x, after.y - before.y) > 2) {
+          const focusedFilter = menu.matches('.files-filter-options.is-mobile, .knowledge-filter-options') && menu.contains(document.activeElement);
+          if (focusedFilter && after) {
+            // Catalog results can resize the scroller while the filter controls still own focus.
+            menuAnchors.set(menu, after);
+            positionActionMenus();
+          } else setMenuOpen(menu, false);
+        }
       }
     });
   },
