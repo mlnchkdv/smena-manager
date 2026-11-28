@@ -516,22 +516,25 @@
 @media (max-width: 420px) {
   .cal .cal-navigation {
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 4px 8px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 4px;
   }
   .cal-navigation > h2 {
-    grid-area: 1/1;
+    grid-area: 1/2;
     white-space: normal;
+    text-align: center;
   }
   .cal-navigation > .cal-settings-toggle {
-    grid-area: 1/2;
-    justify-self: end;
+    grid-area: 1/3;
   }
-  .cal-navigation > [data-a='calNav'] {
+  .cal-navigation > .cal-settings-toggle > span {
+    display: none;
+  }
+  .cal-navigation > .cal-today-trigger {
     grid-area: 2/1;
     justify-self: start;
   }
   .cal-navigation > .row {
-    grid-area: 2/2;
+    grid-area: 1/1;
   }
 }

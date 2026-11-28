@@ -93,12 +93,13 @@ export function calendarHtml(ts, opt = {}) {
       })
       .join('')}</div>`;
   }
+  const currentPeriod = mode === 'week' ? diffD(startOfWeek(cur), startOfWeek(TODAY)) === 0 : cur.getMonth() === TODAY.getMonth() && cur.getFullYear() === TODAY.getFullYear();
   const projs = [...new Set(ts.map(t => t.project))].map(proj).filter(Boolean);
   const layerCount = [1, 2, 4, 8].filter(bit => (S.prefs.calendarLayers ?? 3) & bit).length;
   return `<div class="cal ${S.ui.calendarControlsOpen ? 'controls-open' : ''}">
     <div class="toolbar cal-toolbar" style="gap:8px">
       <div class="cal-navigation">
-      <button class="btn btn-secondary btn-sm" data-a="calNav" data-d="0">Today</button>
+      ${currentPeriod ? '' : '<button class="btn btn-secondary btn-sm cal-today-trigger" data-a="calNav" data-d="0">Today</button>'}
       <div class="row" style="gap:0"><button class="ibtn ibtn-sm" data-a="calNav" data-d="-1" aria-label="Previous">${ic('chevron-left', 16)}</button><button class="ibtn ibtn-sm" data-a="calNav" data-d="1" aria-label="Next">${ic('chevron-right', 16)}</button></div>
       <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2><button class="ibtn cal-settings-toggle" data-a="toggleCalendarControls" aria-label="${t('Calendar view')}" aria-expanded="${!!S.ui.calendarControlsOpen}"> ${ic('sliders-horizontal', 16)}<span translate="no">${isRussian() ? 'Вид' : 'View'}</span></button>
       </div>
