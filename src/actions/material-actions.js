@@ -486,6 +486,15 @@ IN.knowledgeTag = el => {
   S.ui.knowledgeLimit = 200;
   render();
 };
+A.resetKnowledgePanelFilters = () => {
+  S.ui.knowledgeTag = '';
+  S.ui.knowledgeSort = 'updated';
+  S.ui.knowledgeOffset = 0;
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeLimit = 200;
+  render();
+  document.querySelector('.knowledge-filter-options [data-filter-done]')?.focus({ preventScroll: true });
+};
 A.setKnowledgeTag = el => {
   S.ui.knowledgeTag = el.dataset.tag || '';
   S.ui.knowledgeActive = null;

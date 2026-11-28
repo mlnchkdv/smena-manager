@@ -27,7 +27,7 @@ import '../features/files.js';
 import '../features/file-selection.js';
 import { demandFilePage } from '../features/file-catalog-demand.js';
 import { filePagePending } from '../ui/file-page-state.js';
-import { catalogPanelDone, collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
+import { catalogFilterFooter, collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { uploadsHtml } from '../ui/file-uploads.js';
 
@@ -237,7 +237,7 @@ export function pageFiles(projectId = null) {
       `
       <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div>
       <details class="ui-menu files-search-help"><summary class="ibtn" aria-label="File search tips" title="File search tips">${ic('info', 14)}</summary><div><p>Use quotes for an exact phrase, for example "Report 2".</p><p>Words must all match. Search includes names, folders, projects and people.</p></div></details>
-      <details class="files-filter-options ${(document.querySelector('.main')?.clientWidth || innerWidth) <= 850 ? 'ui-menu is-mobile' : 'is-desktop'}" ${(document.querySelector('.main')?.clientWidth || innerWidth) > 850 || S.ui.fileFiltersOpen ? 'open' : ''}><summary id="files-filter-toggle" class="btn btn-secondary" aria-controls="files-filter-fields" aria-label="${filterSummaryLabel('File filters', criteria)}" title="${filterSummaryLabel('File filters', criteria)}">${ic('filter', 14)}<span class="hide-m">Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div id="files-filter-fields">
+      <details class="files-filter-options ${(document.querySelector('.main')?.clientWidth || innerWidth) <= 850 ? 'ui-menu is-mobile' : 'is-desktop'}" ${(document.querySelector('.main')?.clientWidth || innerWidth) > 850 || S.ui.fileFiltersOpen ? 'open' : ''}><summary id="files-filter-toggle" class="btn btn-secondary" aria-controls="files-filter-fields" aria-label="${filterSummaryLabel('File filters', criteria.length)}" title="${filterSummaryLabel('File filters', criteria.length)}">${ic('filter', 14)}<span class="hide-m">Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div id="files-filter-fields">
       ${projectId ? '' : `<label class="file-filter-caption" for="workspace-file-project" translate="no">${isRussian() ? 'Проект' : 'Project'}</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>`}
       <label class="file-filter-caption" for="workspace-file-type" translate="no">${isRussian() ? 'Тип' : 'Type'}</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
         FT,
@@ -262,7 +262,7 @@ export function pageFiles(projectId = null) {
           ([value, icon, label]) =>
             `<button class="${preference === value ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${value}" aria-label="${esc(tr(label))}" aria-pressed="${preference === value}">${ic(icon, 13)}<span translate="no">${(isRussian() ? { auto: 'Авто', grid: 'Плитка', list: 'Список' } : { auto: 'Auto', grid: 'Grid', list: 'List' })[value]}</span></button>`,
         )
-        .join('')}</div>${catalogPanelDone()}</div></details>
+        .join('')}</div>${catalogFilterFooter('resetFilePanelFilters', criteria.length)}</div></details>
     `,
       'File filters',
       'files-toolbar workspace-files-toolbar',

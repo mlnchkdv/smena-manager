@@ -1124,6 +1124,20 @@ A.clearFileQuery = () => {
   render();
   document.getElementById('workspace-file-q')?.focus({ preventScroll: true });
 };
+A.resetFilePanelFilters = () => {
+  S.ui.fileType = 'all';
+  if (S.ui.route !== 'project' && S.ui.fileProject !== 'all') {
+    S.ui.fileProject = 'all';
+    S.ui.fileFolder = null;
+    S.ui.fileFolderQuery = '';
+    S.ui.fileFolderOffset = 0;
+    S.ui.fileFoldersArchived = false;
+  }
+  S.ui.fileSort = 'date';
+  saveFilePreferences();
+  render();
+  document.querySelector('.files-filter-options [data-filter-done]')?.focus({ preventScroll: true });
+};
 A.searchAllFiles = () => {
   S.ui.fileProject = 'all';
   S.ui.fileFolder = null;

@@ -1,4 +1,4 @@
-import { catalogPanelDone, collectionToolbar } from '../ui/collection-layout.js';
+import { catalogFilterFooter, collectionToolbar } from '../ui/collection-layout.js';
 import { knowledgeBodyState, ensureKnowledgeBody } from '../core/knowledge-bodies.js';
 import { compactKnowledgePath } from '../ui/knowledge-location.js';
 import '../actions/material-actions.js';
@@ -303,14 +303,14 @@ export function pageKnowledge() {
         ${readOnly ? '' : `<p class="knowledge-import-hint" data-reading="${Boolean(S.ui.knowledgeImportReading)}" role="status"><span data-knowledge-import-progress>${S.ui.knowledgeImportReading ? 'Reading note files…' : 'Drop TXT or Markdown files here, or choose Import notes.'}</span>${S.ui.knowledgeImportReading ? '<button class="btn btn-ghost btn-sm" data-a="cancelKnowledgeImport">Cancel</button>' : ''}</p>`}
         ${S.ui.knowledgeQuery && activeFolder ? '<button class="btn btn-ghost btn-sm" data-a="searchAllKnowledge">Search all folders</button>' : ''}
         ${indexed?.localOnly ? `<p class="hint" role="status">${t(searchStatus)}</p>` : ''}${collectionToolbar(
-          `<div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" id="knowledge-search" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="${folderFilter === 'all' ? 'Search knowledge base' : 'Search in this folder'}" aria-label="Search knowledge base">${S.ui.knowledgeQuery ? `<button class="ibtn knowledge-search-clear" data-a="clearKnowledgeQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div><details class="ui-menu knowledge-filter-options" ${knowledgeDisclosure('catalog', 'filters')}><summary class="btn btn-secondary" aria-label="${filterSummaryLabel('Filters', criteria)}">${ic('filter', 14)}<span>Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
+          `<div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" id="knowledge-search" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="${folderFilter === 'all' ? 'Search knowledge base' : 'Search in this folder'}" aria-label="Search knowledge base">${S.ui.knowledgeQuery ? `<button class="ibtn knowledge-search-clear" data-a="clearKnowledgeQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div><details class="ui-menu knowledge-filter-options" ${knowledgeDisclosure('catalog', 'filters')}><summary class="btn btn-secondary" aria-label="${filterSummaryLabel('Filters', criteria.length)}">${ic('filter', 14)}<span>Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
             ...new Set(notes.flatMap(note => note.tags || [])),
           ]
             .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
             .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''} translate="no">${esc(tag)}</option>`)
             .join(
               '',
-            )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label>${catalogPanelDone()}</div></details>`,
+            )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label>${catalogFilterFooter('resetKnowledgePanelFilters', criteria.length)}</div></details>`,
           'Knowledge search and filters',
           'knowledge-content-toolbar',
         )}${filterCriteria(criteria, 'clearKnowledgeCriterion')}${knowledgeQueryContext(folderFilter, activeFolder?.name || t(folderLabel(folderFilter, folders)))}

@@ -1274,8 +1274,9 @@
     display: none;
   }
 }
-.graph-filter-return {
-  display: none;
+.graph-filter-panel .catalog-filter-footer {
+  flex: 1 0 100%;
+  grid-column: 1/-1;
 }
 @media (max-width: 640px), (max-width: 1100px) and (max-height: 500px) {
   .graph-page #graph-filters:not([hidden]) {
@@ -1291,11 +1292,9 @@
     box-shadow: var(--shadow-pop);
     scroll-margin-block: 0;
   }
-  .graph-filter-panel .graph-filter-return {
-    display: inline-flex;
+  .graph-filter-panel .catalog-filter-footer {
     position: sticky;
     bottom: 0;
-    grid-column: 1/-1;
   }
 }
 @media (min-width: 641px) and (max-width: 1100px) and (max-height: 500px) {

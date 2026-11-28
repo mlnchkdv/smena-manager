@@ -54,8 +54,10 @@ IN.graphCheck = el => {
   render();
 };
 A.resetGraphFilters = () => {
-  for (const field of ['graphQuery', 'graphKind', 'graphProject', 'graphConnected', 'graphArchive']) S.ui[field] = '';
+  for (const field of ['graphKind', 'graphProject', 'graphConnected', 'graphArchive']) S.ui[field] = '';
+  S.ui.graphDepth = '1';
   render();
+  document.querySelector('#graph-filters [data-filter-done]')?.focus({ preventScroll: true });
 };
 A.selectGraphNode = el => {
   S.ui.graphSelectionClosed = false;
@@ -66,10 +68,8 @@ A.graphControl = el => window.dispatchEvent(new CustomEvent('smena:graph-control
 A.toggleGraphFilters = () => {
   S.ui.graphFiltersOpen = !S.ui.graphFiltersOpen;
   render();
-  if (matchMedia('(max-width:640px), (max-width:1100px) and (max-height:500px)').matches) {
-    const selector = S.ui.graphFiltersOpen ? '#graph-filters .select-btn, #graph-filters select' : '.graph-filter-toggle';
-    [...document.querySelectorAll(selector)].find(el => el.getBoundingClientRect().width)?.focus({ preventScroll: true });
-  }
+  const selector = S.ui.graphFiltersOpen ? '#graph-filters .select-btn, #graph-filters select' : '.graph-filter-toggle';
+  [...document.querySelectorAll(selector)].find(el => el.getBoundingClientRect().width)?.focus({ preventScroll: true });
 };
 A.refineGraphSelection = () => {
   S.ui.graphFiltersOpen = true;

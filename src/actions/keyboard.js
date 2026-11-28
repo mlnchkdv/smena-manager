@@ -193,6 +193,11 @@ document.addEventListener('keydown', e => {
       A.closeMnav();
       return;
     }
+    if (S.ui.graphFiltersOpen && S.ui.route === 'graph') {
+      e.preventDefault();
+      A.toggleGraphFilters();
+      return;
+    }
     if (S.ui.graphFocus && S.ui.route === 'graph') {
       A.toggleGraphFocus();
       return;
