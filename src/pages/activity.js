@@ -199,6 +199,7 @@ export function pageActivity() {
   if (who !== 'all') as = as.filter(a => a.by === who);
   const from = S.ui.actFrom || '',
     to = S.ui.actTo || '';
+  const activeFilters = [f !== 'all', who !== 'all', Boolean(from || to), Boolean(query.trim()), project !== 'all'].filter(Boolean).length;
   const invalidRange = !activityRangeValid(from, to);
   const dateError = invalidRange ? 'aria-invalid="true" aria-describedby="activity-date-error"' : '';
   as = as.filter(activityMatcher(D(), { query, project, from, to, zone: S.prefs.tz })).sort((a, b) => Number(new Date(b.at)) - Number(new Date(a.at)));
@@ -209,7 +210,7 @@ export function pageActivity() {
   page.items.forEach(a => (b[dayBucket(a.at)] ||= []).push(a));
   return `<div class="page activity-page layout-reading">
     <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div>${S.ui.currentUser?.role === 'admin' ? `<details class="ui-menu" data-anchor-end ${disclosureAttributes('activity:actions')}><summary class="ibtn" aria-label="${T('Activity actions', 'Действия с активностью')}">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost" data-a="viewAccessEvents" translate="no">${T('Access and recovery history', 'История доступа и восстановления')}</button></div></details>` : ''}</div>
-    <div class="activity-filters ${S.ui.activityControlsOpen ? 'controls-open' : ''}"><button class="btn btn-secondary activity-controls-toggle" data-a="toggleActivityControls" aria-expanded="${!!S.ui.activityControlsOpen}">${t('Filters')}</button><div class="activity-type-wide">${segmentedControl(
+    <div class="activity-filters ${S.ui.activityControlsOpen ? 'controls-open' : ''}"><button class="btn btn-secondary activity-controls-toggle" data-a="toggleActivityControls" aria-expanded="${!!S.ui.activityControlsOpen}"><span>${t('Filters')}</span>${activeFilters ? ` <span class="cnt">${activeFilters}</span>` : ''}</button><div class="activity-type-wide">${segmentedControl(
       {
         label: 'Activity filters',
         key: 'actFilter',

@@ -38,8 +38,8 @@ export function pageNotifications() {
         key: 'notifFilter',
         value: f,
         items: [
-          ['all', 'All'],
-          ['unread', 'Unread'],
+          ['all', 'All', unread + read],
+          ['unread', 'Unread', unread],
         ],
       })}
       <details class="ui-menu notification-actions"><summary class="ibtn" aria-label="Notification actions" title="Notification actions">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost" data-a="markAllRead" ${unread ? '' : 'disabled'}>${ic('check-check', 14)}Mark all as read</button>

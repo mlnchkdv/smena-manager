@@ -116,8 +116,8 @@ export function registerNotificationActions(A) {
       if (!error.staleSession) toast(error.message || 'Unable to clear read notifications.', { kind: 'err', ms: 5000 });
     }
   };
-  A.toggleUnreadOnly = () => {
-    S.ui.inboxUnread = !S.ui.inboxUnread;
+  A.toggleUnreadOnly = el => {
+    S.ui.inboxUnread = el?.dataset.v ? el.dataset.v === 'unread' : !S.ui.inboxUnread;
     S.ui.inboxSel = null;
     render();
   };
