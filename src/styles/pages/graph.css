@@ -1256,7 +1256,7 @@
     width: auto;
     grid-column: auto;
   }
-  .graph-toolbar:not(.options-open) > :is(.graph-display-trigger, .seg) {
+  .graph-toolbar:not(.options-open) > .seg {
     display: none;
   }
   .graph-page .graph-filter-toggle {
