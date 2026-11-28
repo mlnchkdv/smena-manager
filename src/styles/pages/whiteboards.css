@@ -348,6 +348,23 @@
 .whiteboard-view-toggle {
   flex-shrink: 0;
 }
+.project-whiteboard > .whiteboard-mobile-view {
+  display: none;
+}
+@media (max-width: 640px) {
+  .project-whiteboard > .whiteboard-mobile-view {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-block: 4px;
+  }
+  .whiteboard-mobile-view > button {
+    min-height: 44px;
+    padding-inline: 12px;
+  }
+  .project-whiteboard .whiteboard-toolbar > .whiteboard-view-toggle {
+    display: none;
+  }
+}
 @media (min-width: 641px) and (max-width: 900px), (min-width: 641px) and (pointer: coarse) {
   .project-whiteboard .whiteboard-toolbar .whiteboard-view-toggle {
     padding-inline: 4px;
