@@ -189,6 +189,7 @@ export function pageBookmarks() {
 
   const folderControl = id =>
     `<div class="bookmark-folder-control"><label class="sr" for="${id}">Filter by folder</label><select class="select" id="${id}" data-in="bookmarkFolder" data-searchable data-browse-first><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folderPath(folder))}</option>`).join('')}</select></div>`;
+  const sortControl = `<label class="field" translate="no">${kc('Sort', 'Сортировка')}<select class="select" data-in="bookmarkArchiveSort"><option value="updated" ${archiveFilters.sort === 'updated' ? 'selected' : ''}>${kc('Recently updated', 'Недавно обновлённые')}</option><option value="captured" ${archiveFilters.sort === 'captured' ? 'selected' : ''}>${kc('Recently captured', 'Недавно архивированные')}</option></select></label>`;
   const viewControls = `<p class="hint" translate="no">${kc('Saved for this folder on this device.', 'Вид папки сохраняется на этом устройстве.')}</p>${[
     ['grid', 'layout-grid', kc('Cards', 'Карточки')],
     ['list', 'list', kc('List', 'Список')],
@@ -220,10 +221,10 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
       `
       <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" id="bookmark-search" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks" style="padding-right:44px">${query ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="bookmark-search" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
       <div class="bookmark-wide-control">${folderControl('bookmark-folder-filter')}</div>
-      <details class="ui-menu bookmark-view-menu bookmark-wide-control" data-anchor-end ${disclosureAttributes('bookmark:view')}><summary class="btn btn-secondary">${ic('layout-grid', 15)}<span>${kc('View', 'Вид')}</span></summary><div>${viewControls}</div></details>
+      <details class="ui-menu bookmark-view-menu" data-anchor-end ${disclosureAttributes('bookmark:view')}><summary class="btn btn-secondary" aria-label="${kc('Bookmark view', 'Вид закладок')}" title="${kc('Bookmark view', 'Вид закладок')}">${ic('layout-grid', 15)}<span class="bookmark-view-label" translate="no">${kc('View', 'Вид')}</span></summary><div>${viewControls}${sortControl}</div></details>
       ${collectionOptions(
         `
-      <div class="bookmark-compact-controls">${folderControl('bookmark-folder-filter-compact')}<p class="label">${kc('View', 'Вид')}</p>${viewControls}</div>
+      <div class="bookmark-compact-controls">${folderControl('bookmark-folder-filter-compact')}</div>
       <label class="field" translate="no">${kc('Saved page', 'Сохранённая страница')}<select class="select" data-in="bookmarkArchiveFilter">${[
         ['all', kc('All', 'Все')],
         ['none', kc('No saved copy', 'Нет копии')],
@@ -234,7 +235,7 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
         .map(([v, label]) => `<option value="${v}" ${archiveFilters.archive === v ? 'selected' : ''}>${label}</option>`)
         .join(
           '',
-        )}</select></label><label class="field" translate="no">${kc('Captured since', 'Архивировано с даты')}<input class="input" type="date" data-in="bookmarkCapturedAfter" value="${esc(archiveFilters.capturedAfter)}"></label><label class="field" translate="no">${kc('Sort', 'Сортировка')}<select class="select" data-in="bookmarkArchiveSort"><option value="updated" ${archiveFilters.sort === 'updated' ? 'selected' : ''}>${kc('Recently updated', 'Недавно обновлённые')}</option><option value="captured" ${archiveFilters.sort === 'captured' ? 'selected' : ''}>${kc('Recently captured', 'Недавно архивированные')}</option></select></label><button class="btn btn-secondary" data-a="searchBookmarkArchives" translate="no">${ic('search', 16)}${kc('Search saved pages', 'Поиск по сохранённым страницам')}</button>
+        )}</select></label><label class="field" translate="no">${kc('Captured since', 'Архивировано с даты')}<input class="input" type="date" data-in="bookmarkCapturedAfter" value="${esc(archiveFilters.capturedAfter)}"></label><button class="btn btn-secondary" data-a="searchBookmarkArchives" translate="no">${ic('search', 16)}${kc('Search saved pages', 'Поиск по сохранённым страницам')}</button>
       ${segmentedControl({
         label: 'Bookmark status',
         key: 'bookmarkScope',

@@ -233,7 +233,14 @@
 }
 @media (max-width: 760px) {
   .bookmark-library .bookmark-toolbar {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+  .bookmark-library .bookmark-view-label {
+    display: none;
+  }
+  .bookmark-library .bookmark-view-menu > summary {
+    min-width: var(--control-target);
+    justify-content: center;
   }
   .bookmark-library .bookmark-search {
     grid-column: auto;
