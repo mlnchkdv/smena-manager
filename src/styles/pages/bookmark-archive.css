@@ -1,3 +1,12 @@
+.bookmark-viewer-heading[data-saved-copy] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 8px;
+}
+.bookmark-viewer-heading[data-saved-copy] .bookmark-viewer-url {
+  grid-column: 1 / -1;
+}
 .bookmark-copy-tools > summary {
   cursor: pointer;
   padding-block: 10px;
@@ -6,6 +15,9 @@
   margin-block: 8px;
 }
 @media (max-width: 640px) {
+  .bookmark-viewer-heading[data-saved-copy] > a {
+    min-height: var(--control-target);
+  }
   .bookmark-viewer-heading[data-saved-copy] .bookmark-viewer-url {
     display: none;
   }
