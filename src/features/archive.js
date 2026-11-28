@@ -44,17 +44,17 @@ export function pageArchive() {
   const compactFilters = (document.querySelector('.main')?.clientWidth || innerWidth) <= 640;
   const filterCount = [S.ui.trashKind, context, S.ui.trashPeriod].filter(Boolean).length;
   const filters = `<div class="trash-filters"><input class="input" data-in="trashQuery" value="${esc(S.ui.trashQuery || '')}" placeholder="Search trash" aria-label="Search trash"><${compactFilters ? 'details' : 'div'} class="trash-filter-options${compactFilters ? ' ui-menu' : ' is-wide'}" ${compactFilters ? disclosureAttributes('trash-filters') : ''}>${compactFilters ? `<summary class="btn btn-secondary" aria-label="${isRussian() ? 'Фильтры корзины' : 'Trash filters'}" title="${isRussian() ? 'Фильтры корзины' : 'Trash filters'}">${ic('list-filter', 15)}${filterCount ? `<span class="badge accent">${filterCount}</span>` : ''}</summary>` : ''}<div><select class="select" data-in="trashFilter" data-field="trashKind" aria-label="Material type"><option value="">All types</option>${['task', 'project', 'note', 'bookmark', 'file'].map(kind => `<option value="${kind}" ${S.ui.trashKind === kind ? 'selected' : ''}>${t({ task: 'Task', project: 'Project', note: 'Note', bookmark: 'Bookmark', file: 'File' }[kind])}</option>`).join('')}</select><select class="select" data-in="trashFilter" data-field="trashContext" aria-label="Original location"><option value="">All locations</option>${locations.map(path => `<option value="${esc(path)}" ${context === path ? 'selected' : ''} translate="no">${esc(path)}</option>`).join('')}</select><select class="select" data-in="trashFilter" data-field="trashPeriod" aria-label="Deleted during"><option value="">Any date</option><option value="7" ${S.ui.trashPeriod === '7' ? 'selected' : ''}>Last 7 days</option><option value="30" ${S.ui.trashPeriod === '30' ? 'selected' : ''}>Last 30 days</option></select></div></${compactFilters ? 'details' : 'div'}></div><p class="hint num" role="status">${page.total} / ${trash.length}</p>`;
-  const row = (lead, title, sub, when, restoreAct, delAct, id) =>
-    `<article class="mini archive-item" aria-label="${esc(title)}"><span class="archive-item-icon">${lead}</span><div class="grow archive-item-copy"><div class="trunc archive-item-title" translate="no">${esc(title)}</div><div class="faint trunc archive-item-context">${sub}</div></div><span class="faint archive-item-date">${when}</span><div class="archive-item-actions"><button class="btn btn-secondary btn-sm" data-a="${restoreAct}" data-id="${esc(id)}" aria-label="${actionLabel('Restore', title, id)}">${ic('rotate-ccw', 13)}Restore</button><button class="ibtn ibtn-sm" data-a="${delAct}" data-id="${esc(id)}" data-tip="Delete permanently" aria-label="${actionLabel('Delete permanently', title, id)}" style="color:var(--red)">${ic('trash-2', 15)}</button></div></article>`;
+  const row = (lead, title, sub, when, restoreAct, delAct, id, canRestore = true) =>
+    `<article class="mini archive-item" aria-label="${esc(title)}"><span class="archive-item-icon">${lead}</span><div class="grow archive-item-copy"><div class="trunc archive-item-title" translate="no">${esc(title)}</div><div class="faint trunc archive-item-context">${sub}</div></div><span class="faint archive-item-date">${when}</span><div class="archive-item-actions"><button class="btn btn-secondary btn-sm" data-a="${restoreAct}" data-id="${esc(id)}" ${canRestore ? '' : 'disabled'} aria-label="${actionLabel('Restore', title, id)}">${ic('rotate-ccw', 13)}Restore</button><button class="ibtn ibtn-sm" data-a="${delAct}" data-id="${esc(id)}" data-tip="Delete permanently" aria-label="${actionLabel('Delete permanently', title, id)}" style="color:var(--red)">${ic('trash-2', 15)}</button></div></article>`;
   const trashNames = { task: 'Task', project: 'Project', note: 'Note', bookmark: 'Bookmark', file: 'File' };
-  const restoreTarget = item => {
-    const plan = trashRestorePlan(item, D(), D().me, S.ui.currentUser?.role);
+  const restorePlan = item => trashRestorePlan(item, D(), D().me, S.ui.currentUser?.role);
+  const restoreTarget = plan => {
     if (plan.error) return `<span class="hint">${esc(t(plan.error))}</span>`;
     const target = plan.target || t('No folder');
     return `<span class="archive-restore-target" title="${esc(target)}">${t('Destination')} · <span translate="no">${esc(target)}</span></span>`;
   };
   const bookmarkBatch =
-    tab === 'trash' ? page.items.filter(item => item.kind === 'bookmark' && !trashRestorePlan(item, D(), D().me, S.ui.currentUser?.role).error) : [];
+    tab === 'trash' ? page.items.filter(item => item.kind === 'bookmark' && !restorePlan(item).error) : [];
   const restoreBookmarks =
     bookmarkBatch.length > 1
       ? `<button class="btn btn-secondary archive-bookmark-batch" data-a="restoreTrashBookmarks" data-ids="${esc(JSON.stringify(bookmarkBatch.map(item => item.id)))}" translate="no">${ic('rotate-ccw', 15)}${isRussian() ? 'Восстановить закладки на странице' : 'Restore bookmarks on this page'} (${bookmarkBatch.length})</button>`
@@ -90,7 +90,10 @@ export function pageArchive() {
   const body =
     tab === 'trash'
       ? page.total
-        ? `<div class="panel" style="overflow:hidden">${page.items.map(item => row(ic(item.kind === 'project' ? 'folder-kanban' : item.kind === 'file' ? 'paperclip' : item.kind === 'note' ? 'file-text' : item.kind === 'bookmark' ? 'bookmark' : 'circle-check', 15), item.name, `${t(trashNames[item.kind] || 'Item')} · ${restoreTarget(item)}`, item.deletedAt ? 'Deleted ' + ago(item.deletedAt) : 'Deleted', 'restoreTrash', 'purgeTrash', item.id)).join('')}</div>`
+        ? `<div class="panel" style="overflow:hidden">${page.items.map(item => {
+          const plan = restorePlan(item);
+          return row(ic(item.kind === 'project' ? 'folder-kanban' : item.kind === 'file' ? 'paperclip' : item.kind === 'note' ? 'file-text' : item.kind === 'bookmark' ? 'bookmark' : 'circle-check', 15), item.name, `${t(trashNames[item.kind] || 'Item')} · ${restoreTarget(plan)}`, item.deletedAt ? 'Deleted ' + ago(item.deletedAt) : 'Deleted', 'restoreTrash', 'purgeTrash', item.id, !plan.error);
+        }).join('')}</div>`
         : `<div class="panel">${empty('trash-2', trash.length ? 'No matching items' : 'Trash is empty', trash.length ? 'Change the search or filters.' : 'Deleted tasks, projects, notes, bookmarks, and files will appear here.', '')}</div>`
       : `<div class="panel">${
           ['tasks', 'projects']

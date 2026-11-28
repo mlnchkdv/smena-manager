@@ -66,6 +66,15 @@
 .search-tools .hint {
   margin: 8px;
 }
+.search-page .search-material-row {
+  width: 100%;
+  min-height: var(--control-target);
+  text-align: start;
+}
+.search-material-row > .grow {
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
 .search-page .mini {
   min-width: 0;
 }
@@ -100,7 +109,16 @@
   .search-category-picker .select {
     width: 100%;
   }
-  .search-page .mini {
+  .search-page .search-material-row {
+  width: 100%;
+  min-height: var(--control-target);
+  text-align: start;
+}
+.search-material-row > .grow {
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+.search-page .mini {
     flex-wrap: wrap;
     min-height: 44px;
   }

@@ -2,7 +2,7 @@ import { sourceSearchStatus, sourceSearchIncomplete } from '../ui/search-source-
 /* ---------- SEARCH RESULTS ---------- */
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { D, S, mem, pColor, proj, task } from '../core/store.js';
+import { D, S, mem, proj, task } from '../core/store.js';
 import { searchAll, clearWhiteboardSearch } from '../core/search.js';
 import { FT, av, empty, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
@@ -101,7 +101,7 @@ export function pageSearch() {
                 r.tasks
                   .map(
                     t =>
-                      `<div class="mini" data-a="openTask" data-id="${t.id}">${stIcon(t.status)}<span class="mono faint" style="font-size:11px" translate="no">${esc(t.key)}</span><span class="tt" translate="no">${hl(t.title, q)}</span><span class="pj" translate="no"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span>${esc(proj(t.project).name)}</span>${av(t.assignee, 'sm')}</div>`,
+                      `<button class="mini search-material-row" data-a="openTask" data-id="${esc(t.id)}">${stIcon(t.status)}<span class="col min0 grow" translate="no"><span class="tt">${hl(t.title, q)}</span><small class="faint">${esc(t.key)} · ${esc(proj(t.project)?.name || '')}</small></span>${av(t.assignee, 'sm', false)}</button>`,
                   )
                   .join(''),
               ) +
@@ -132,7 +132,7 @@ export function pageSearch() {
                   .map(f => {
                     const meta = FT[f.type] || FT.other;
                     const project = proj(f.project);
-                    return `<div class="mini" data-a="previewFile" data-id="${f.id}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="tt" translate="no">${hl(f.name, q)}</span><span class="faint" style="font-size:12px" translate="no">${esc(f.size || '')}${project ? ` · ${esc(project.name)}` : ''}</span></div>`;
+                    return `<button class="mini search-material-row" data-a="previewFile" data-id="${esc(f.id)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="col min0 grow"><span class="tt" translate="no">${hl(f.name, q)}</span><small class="faint"><span>${t(meta.n)}</span>${project ? ` · <span translate="no">${esc(project.name)}</span>` : ''}${f.size ? ` · ${esc(f.size)}` : ''}</small></span></button>`;
                   })
                   .join(''),
               ) +
