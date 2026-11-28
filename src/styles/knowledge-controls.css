@@ -384,6 +384,11 @@
   min-width: 36px;
   min-height: 36px;
 }
+.knowledge-results-actions:not(:empty) {
+  display: flex;
+  justify-content: flex-end;
+  margin-block: 4px 8px;
+}
 @media (max-width: 640px), (pointer: coarse) {
   .knowledge-selection-start {
     min-width: var(--control-target);

@@ -310,12 +310,13 @@ export function pageKnowledge() {
             .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''} translate="no">${esc(tag)}</option>`)
             .join(
               '',
-            )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label>${catalogPanelDone()}</div></details>${knowledgeSelectionStart(visible)}`,
+            )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label>${catalogPanelDone()}</div></details>`,
           'Knowledge search and filters',
           'knowledge-content-toolbar',
         )}${filterCriteria(criteria, 'clearKnowledgeCriterion')}${knowledgeQueryContext(folderFilter, activeFolder?.name || t(folderLabel(folderFilter, folders)))}
         ${inlineFolders && S.ui.knowledgeNoteLayout !== 'table' ? '' : folderCards}
         ${foldersAvailable && !inlineFolders ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.children.get(folderFilter)?.length ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
+        <div class="knowledge-results-actions">${knowledgeSelectionStart(visible)}</div>
         ${knowledgeBulkToolbar(visible)}
         ${
           S.ui.knowledgeNoteLayout === 'table' && visible.length
