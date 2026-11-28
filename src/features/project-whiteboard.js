@@ -846,16 +846,6 @@ export function revealWhiteboardPdfPages(cards) {
     viewport.focus({ preventScroll: true });
   });
 }
-A.whiteboardToggleOutline = el => {
-  const state = whiteboardState();
-  const view = el?.dataset.view;
-  const outline = view ? view === 'list' : !state.outline;
-  if (outline === !!state.outline) return;
-  state.outline = outline;
-  render();
-  const selector = view ? `.whiteboard-mobile-view [data-view="${view}"]` : '.whiteboard-view-toggle';
-  document.querySelector(selector)?.focus({ preventScroll: true });
-};
 A.whiteboardTogglePan = () => {
   const state = whiteboardState();
   const mode = whiteboardNavigationMode(state);

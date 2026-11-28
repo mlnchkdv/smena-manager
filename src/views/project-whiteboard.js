@@ -1,6 +1,7 @@
 import { whiteboardMinimap } from '../ui/whiteboard-minimap.js';
 import { A } from '../actions/actions.js';
 import { toast } from '../ui/toast.js';
+import { render } from '../shell/render.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { esc } from '../core/utils.js';
 import { whiteboardMaterialPreview } from '../shared/whiteboard-material.js';
@@ -63,6 +64,16 @@ for (const action of ['whiteboardPickFromList', 'whiteboardTogglePan']) {
   };
   A[action] = load;
 }
+A.whiteboardToggleOutline = el => {
+  const state = whiteboardState();
+  const view = el?.dataset.view;
+  const outline = view ? view === 'list' : !state.outline;
+  if (outline === !!state.outline) return;
+  state.outline = outline;
+  render();
+  const selector = view ? `.whiteboard-mobile-view [data-view="${view}"]` : '.whiteboard-view-toggle';
+  document.querySelector(selector)?.focus({ preventScroll: true });
+};
 function outlineHtml(board, editable, state, lockedIds) {
   const query = (state.outlineQuery || '').trim().toLocaleLowerCase();
   const frames = board.nodes.filter(n => n.type === 'group').sort((a, b) => a.width * a.height - b.width * b.height);
