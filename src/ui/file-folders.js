@@ -51,7 +51,7 @@ export function fileFolderSearchResults(projectId, currentFolder, index, query, 
   return {
     count: matches.length,
     content: `<details id="file-folder-search-results" class="file-folder-search-results" ${disclosureAttributes('file-search-folders:' + query)}>
-    <summary class="btn btn-secondary btn-sm" translate="no">${ic('folder', 16)}${heading} · ${matches.length}</summary>
+    <summary id="file-folder-search-heading" class="btn btn-secondary btn-sm" translate="no">${ic('folder', 16)}${heading} · ${matches.length}</summary>
     <ul>${matches.map(({ project, folder, path }) => `<li><button class="btn btn-ghost" data-a="openFileFolder" data-project="${esc(project.id)}" data-folder="${esc(folder.id)}" translate="no">${esc([project.name, ...path.map(item => item.name)].join(' / '))}</button></li>`).join('')}</ul>
   </details>`,
   };
