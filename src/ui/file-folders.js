@@ -5,6 +5,7 @@ import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { canEditProject } from '../shared/project-access.js';
 import { normalizeFileSearch } from '../shared/file-index.js';
+import { searchTerms } from '../shared/search-query.js';
 import { fileFolderMenu } from './file-folder-menu.js';
 import { disclosureAttributes } from './disclosure.js';
 import { fileFolderView } from '../core/file-preferences.js';
@@ -33,6 +34,24 @@ export function visibleFileFolderKeys(projectId, currentFolder, index) {
   const limit = folderWindowSize(fileFolderView().compact);
   const start = fileFolderPageStart(S.ui.fileFolderOffset, entries.length, limit);
   return entries.slice(start, start + limit).map(entry => [entry.project.id, entry.folder.id]);
+}
+
+export function fileFolderSearchResults(projectId, currentFolder, index, query, recursive) {
+  const terms = searchTerms(normalizeFileSearch(query));
+  if (!terms.length) return '';
+  const matches = index.folderEntries
+    .filter(({ project, folder, path, search }) => {
+      if (folder.archived || (projectId !== 'all' && project.id !== projectId) || !terms.every(term => search.includes(term))) return false;
+      if (!currentFolder) return true;
+      return recursive ? path.slice(0, -1).some(parent => parent.id === currentFolder.id) : folder.parentId === currentFolder.id;
+    })
+    .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
+  if (!matches.length) return '';
+  const heading = isRussian() ? 'Найденные папки' : 'Matching folders';
+  return `<details class="file-folder-search-results" ${disclosureAttributes('file-search-folders:' + query)}>
+    <summary class="btn btn-secondary btn-sm" translate="no">${ic('folder', 16)}${heading} · ${matches.length}</summary>
+    <ul>${matches.map(({ project, folder, path }) => `<li><button class="btn btn-ghost" data-a="openFileFolder" data-project="${esc(project.id)}" data-folder="${esc(folder.id)}" translate="no">${esc([project.name, ...path.map(item => item.name)].join(' / '))}</button></li>`).join('')}</ul>
+  </details>`;
 }
 
 export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, index, loadingCounts = false, selectable = false) {

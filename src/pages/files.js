@@ -17,7 +17,7 @@ import { canEditProject } from '../shared/project-access.js';
 import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js';
 import { createFileIndex, filterIndexedFiles, normalizeFileSearch } from '../shared/file-index.js';
 import { searchTerms } from '../shared/search-query.js';
-import { fileFolderBrowser, visibleFileFolderKeys } from '../ui/file-folders.js';
+import { fileFolderBrowser, fileFolderSearchResults, visibleFileFolderKeys } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProgress } from '../ui/file-selection.js';
 import { filePreferences, fileContext as selectFileContext, restoreFileContextPage, rememberFileContextPage } from '../core/file-preferences.js';
 import { filePresetsHtml } from '../ui/file-presets.js';
@@ -164,7 +164,7 @@ export function pageFiles(projectId = null) {
       sort,
       limit: pageSize,
       offset: (S.ui.listPages?.[pageKey] || 0) * pageSize,
-      countFolders: visibleFileFolderKeys(projectFilter, currentFolder, index),
+      countFolders: query ? [] : visibleFileFolderKeys(projectFilter, currentFolder, index),
     },
     pageKey,
   );
@@ -276,7 +276,8 @@ export function pageFiles(projectId = null) {
         ? ''
         : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
-    ${emptySearch ? '' : fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!(remote?.countsLoading || remote?.loading) && !remote.error, !S.ui.fileSelecting && window.items.length > 0)}
+    ${query || emptySearch ? '' : fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!(remote?.countsLoading || remote?.loading) && !remote.error, !S.ui.fileSelecting && window.items.length > 0)}
+    ${query && !S.ui.fileSelecting && window.items.length ? `<div class="files-search-selection"><button class="btn btn-ghost btn-sm" data-a="startFileSelection">${ic('list-checks', 16)}${tr('Select files')}</button></div>` : ''}
     ${remote?.countsError ? `<p class="hint" role="alert">${tr('File counts are unavailable.')} <button class="btn btn-ghost btn-sm" data-a="retryFileCatalog">${tr('Try again')}</button></p>` : ''}
     <section class="files-operations" aria-label="File operations">
     ${fileDownloadProgress()}
@@ -330,5 +331,6 @@ export function pageFiles(projectId = null) {
             )
     }
     ${window.total > 0 && !provisional ? `<div class="files-pagination"><label class="files-page-size"><span>Files per page</span><select class="select" id="files-page-size" data-in="filePageSize" aria-label="Files per page">${[25, 50, 100].map(size => `<option value="${size}" ${size === pageSize ? 'selected' : ''}>${size}</option>`).join('')}</select></label>${paginationHtml(window, pageKey)}${window.pages > 1 ? `<label class="files-page-size"><span>Go to page</span><input class="input files-page-input" id="files-page-jump" aria-label="Go to file page" type="number" min="1" max="${window.pages}" value="${window.page + 1}" data-key-enter="filePageJump" data-key="${esc(pageKey)}"></label>` : ''}</div>` : ''}
+    ${query ? fileFolderSearchResults(projectFilter, currentFolder, index, query, S.ui.fileRecursive) : ''}
   </div>`;
 }

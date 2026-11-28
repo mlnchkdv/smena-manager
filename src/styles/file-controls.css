@@ -260,6 +260,30 @@
   font-size: var(--fs-2xs);
   margin-top: 2px;
 }
+.files-search-selection {
+  display: flex;
+  justify-content: end;
+  margin-bottom: 4px;
+}
+.file-folder-search-results {
+  margin-block: 12px;
+}
+.file-folder-search-results ul {
+  max-height: 35dvh;
+  overflow: auto;
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+.file-folder-search-results li > button {
+  width: 100%;
+  min-height: 44px;
+  height: auto;
+  justify-content: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
 .files-selection-tools > summary {
   list-style: none;
 }
