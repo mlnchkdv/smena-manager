@@ -1,7 +1,7 @@
 import { isRussian } from '../core/i18n.js';
 const narrow = matchMedia('(max-width: 640px)');
 export function updateCompactSearch() {
-  for (const field of document.querySelectorAll('#bookmark-search,#knowledge-search,#workspace-file-q,#graph-search,.toolbar input[data-in="viewQ"]')) {
+  for (const field of document.querySelectorAll('#bookmark-search,#knowledge-search,#graph-search,.toolbar input[data-in="viewQ"]')) {
     const wrap = field.parentElement;
     const bar = wrap.parentElement;
     field.dataset.fullPlaceholder ??= field.placeholder;
