@@ -169,6 +169,7 @@ export function settingsBody(sec, title) {
           : tr('Workspace settings');
   const H = lead =>
     `<h1 tabindex="-1">${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b>${!personal && sec !== 'security' ? ' · ' + esc(workspaceRoleLabel(String(me().role || S.ui.currentUser?.role || '').toLowerCase())) : ''}</summary><p>${scope}</p></details>${sec.startsWith('notif-') && sec !== 'notif-delivery' ? notificationOverview(np) : ''}`;
+  const autoSave = `<p class="hint" translate="no">${isRussian() ? 'Изменения сохраняются автоматически.' : 'Changes save automatically.'}</p>`;
   switch (sec) {
     case 'integrations':
       return integrationsPanel();
@@ -213,7 +214,6 @@ export function settingsBody(sec, title) {
     case 'appearance':
       return (
         H(isRussian() ? 'Оформление вашего интерфейса в текущем пространстве.' : 'Customize your interface in the current workspace.') +
-        viewStorageSettings() +
         `
       <div class="sblock" style="margin-top:0"><h2>Theme</h2><div class="themecards" style="margin-top:12px" role="radiogroup" aria-label="Theme">${[
         ['light', 'Light'],
@@ -228,26 +228,7 @@ export function settingsBody(sec, title) {
           return `<button class="tcard ${P.theme === k ? 'on' : ''}" role="radio" aria-checked="${P.theme === k}" data-a="setTheme" data-v="${k}"><div class="tprev" style="${k === 'system' ? 'grid-template-columns:1fr 1fr;display:grid' : ''}">${k === 'system' ? `<div style="display:grid;grid-template-columns:30% 1fr">${pv(L)}</div><div style="display:grid;grid-template-columns:30% 1fr">${pv(Dk)}</div>` : pv(k === 'light' ? L : Dk)}</div><span class="row" style="font-weight:500;font-size:13px;gap:6px">${ic(k === 'light' ? 'sun' : k === 'dark' ? 'moon' : 'monitor', 14)}${n}${P.theme === k ? `<span class="sp"></span><span style="color:var(--accent)">${ic('circle-check', 15)}</span>` : ''}</span></button>`;
         })
         .join('')}</div></div>
-      <div class="sblock"><h2>Accent color</h2>${srow(
-        'Accent',
-        'Used for primary buttons, focus rings, and selection.',
-        colorPalette({
-          label: 'Accent color',
-          value: P.accent,
-          colors: [
-            ['indigo', 'indigo', '#4B5BD6'],
-            ['blue', 'blue', '#2F6CD4'],
-            ['violet', 'violet', '#7348CC'],
-            ['teal', 'teal', '#1A7F7A'],
-            ['rose', 'rose', '#B93D68'],
-            ['graphite', 'graphite', '#34332F'],
-          ],
-          action: 'setPref',
-          key: 'accent',
-          size: 26,
-        }),
-      )}</div>
-      <div class="sblock"><h2>Customize menu</h2><p class="hint">${isRussian() ? 'Видимые разделы, порядок и счётчики — только для вас.' : 'Visible sections, order and counters — just for you.'}</p><button class="btn btn-secondary" data-a="customizeSidebar">${ic('sliders-horizontal', 14)}Customize menu</button></div><div class="sblock"><h2>Density</h2>
+      <div class="sblock"><h2>Density</h2>
         ${srow(
           'Sidebar density',
           'Compact fits more projects on screen.',
@@ -275,17 +256,40 @@ export function settingsBody(sec, title) {
             P.motion,
           ),
         )}
-      </div>`
+      </div>
+      <div class="sblock"><h2>Accent color</h2>${srow(
+        'Accent',
+        'Used for primary buttons, focus rings, and selection.',
+        colorPalette({
+          label: 'Accent color',
+          value: P.accent,
+          colors: [
+            ['indigo', 'indigo', '#4B5BD6'],
+            ['blue', 'blue', '#2F6CD4'],
+            ['violet', 'violet', '#7348CC'],
+            ['teal', 'teal', '#1A7F7A'],
+            ['rose', 'rose', '#B93D68'],
+            ['graphite', 'graphite', '#34332F'],
+          ],
+          action: 'setPref',
+          key: 'accent',
+          size: 26,
+        }),
+      )}</div>
+      <div class="sblock"><h2>Customize menu</h2><p class="hint">${isRussian() ? 'Видимые разделы, порядок и счётчики — только для вас.' : 'Visible sections, order and counters — just for you.'}</p><button class="btn btn-secondary" data-a="customizeSidebar">${ic('sliders-horizontal', 14)}Customize menu</button></div>` +
+        viewStorageSettings()
       );
     case 'language':
       return (
         H('Language and regional formats.') +
+        autoSave +
         srow('Language', 'The language used throughout the interface.', sel('lang', LANGUAGES, P.lang === 'Русский' ? 'Русский' : 'English (US)')) +
         srow('Spellcheck', 'Check spelling in descriptions and comments.', tog('spell', P.spell !== false))
       );
     case 'datetime':
       return (
         H('How dates and times appear across the workspace.') +
+        autoSave +
         srow(
           'Time zone',
           'Used for due dates and reminders.',
@@ -472,8 +476,8 @@ export function settingsBody(sec, title) {
         H('How you appear to others in the workspace.') +
         `<form data-submit="saveProfile" class="col" style="gap:16px;max-width:440px">
       <div class="row" style="gap:14px">${av(d.me, 'xl', false)}<div><div class="label" style="margin-bottom:6px">Avatar color</div>${colorPalette({ label: 'Avatar color', value: me().c, colors: AVATAR_COLORS, action: 'avColor' })}</div></div>
-      <div class="field"><label class="label" for="pf-name">Full name</label><input class="input ${err ? 'is-error' : ''}" id="pf-name" value="${esc(P.name)}">${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
-      <div class="field"><label class="label" for="pf-title">Title</label><input class="input" id="pf-title" value="${esc(P.title)}"></div>
+      <div class="field"><label class="label" for="pf-name">Full name</label><input class="input ${err ? 'is-error' : ''}" id="pf-name" autocomplete="name" ${err ? 'aria-invalid="true" aria-describedby="pf-name-error"' : ''} value="${esc(P.name)}">${err ? `<span class="err" id="pf-name-error" role="alert">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
+      <div class="field"><label class="label" for="pf-title">Title</label><input class="input" id="pf-title" autocomplete="organization-title" value="${esc(P.title)}"></div>
       <div class="field"><label class="label" for="pf-email">Email</label><input class="input" id="pf-email" value="${esc(me().email)}" disabled><span class="hint">Contact a workspace owner to change your sign-in email.</span></div>
       <div><button class="btn btn-primary" data-a="saveProfile" id="pf-save">Save profile</button></div></form>`
       );
