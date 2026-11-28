@@ -45,7 +45,7 @@ async function load(target) {
     if (target.scope === scope()) render();
   }
 }
-export function integrationsPanel() {
+export function integrationsPanel(workspaceName) {
   const s = current();
   if (!s.data && !s.loading && !s.error) void load(s);
   const button = (action, label, extra = '') =>
@@ -66,6 +66,7 @@ export function integrationsPanel() {
       .join(' · ');
   const data = s.data;
   return `<section class="integration-settings" translate="no"><div class="row between wrap"><h1>${copy('Integrations', 'Интеграции')}</h1>${button('refresh', copy('Refresh', 'Обновить'))}</div>
+    <p class="hint">${copy('Workspace', 'Пространство')} · <strong>${esc(workspaceName)}</strong></p>
     <p class="lead">${copy('Connect Codex or another MCP client to this workspace. Each app receives its own access token.', 'Подключите Codex или другой MCP-клиент к этому пространству. Каждое приложение получает отдельный токен.')}</p>
     <p><a href="${isRussian() ? '/mcp-setup.html' : '/mcp-setup-en.html'}" target="_blank" rel="noopener">${copy('Employee connection guide', 'Инструкция подключения для сотрудников')}</a></p>
     ${s.error ? `<p class="alert warn" role="alert">${esc(errorText(s.error))}</p>` : ''}${s.message ? `<p role="status" class="alert">${esc(s.message)}</p>` : ''}

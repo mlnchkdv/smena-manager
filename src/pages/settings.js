@@ -172,7 +172,7 @@ export function settingsBody(sec, title) {
   const autoSave = `<p class="hint" translate="no">${isRussian() ? 'Изменения сохраняются автоматически.' : 'Changes save automatically.'}</p>`;
   switch (sec) {
     case 'integrations':
-      return integrationsPanel();
+      return integrationsPanel(d.ws.name);
     case 'help':
       return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu ${shortcut([MOD, 'K'])}</button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="${isRussian() ? '/product.html' : '/product-en.html'}" translate="no">${isRussian() ? '\u0412\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u0438 smena.team' : 'Explore smena.team'}</a><a class="btn btn-secondary" href="${isRussian() ? '/privacy.html' : '/privacy-en.html'}">Privacy policy</a><a class="btn btn-secondary" href="${isRussian() ? '/terms.html' : '/terms-en.html'}">Terms of service</a></div>`;
     case 'workspace': {
@@ -348,10 +348,9 @@ export function settingsBody(sec, title) {
       );
     case 'data-transfer':
       return (
-        H('Full workspace backups and KMS Brain data transfer.') +
-        storageCapacityPanel() +
+        H(isRussian() ? 'Резервные копии, восстановление и перенос данных.' : 'Back up, restore and transfer workspace data.') +
         `<details class="sblock settings-data-option" ${disclosureAttributes('settings-storage-inspection')}><summary><strong translate="no">${isRussian() ? 'Проверка хранилища знаний' : 'Knowledge storage check'}</strong><small translate="no">${isRussian() ? 'Тексты, версии и резервные копии' : 'Note bodies, versions and backups'}</small></summary><div class="settings-data-option-body" translate="no"><p class="lead">${isRussian() ? 'Проверяем ссылки и целостность объектов небольшими порциями, без изменения заметок и файлов.' : 'Inspect references and object integrity in bounded steps without changing notes or files.'}</p><button class="btn btn-secondary" data-a="knowledgeStorageInspection">${ic('database', 14)}${isRussian() ? 'Открыть проверку' : 'Open check'}</button></div></details>` +
-        `<div class="sblock settings-backups"><div class="row between settings-backup-head"><h2>Backups</h2><div class="row settings-backup-actions"><button class="btn btn-secondary" data-a="loadWorkspaceBackups">${ic('refresh-cw', 14)}Refresh</button><button class="btn btn-primary" data-a="createWorkspaceBackup">${ic('database-backup', 14)}Create backup</button></div></div><p class="muted settings-backup-description">Automatic backups require a working daily schedule. Check the copies below to confirm successful runs. The latest 30 automatic copies are retained; manual copies are not removed automatically.</p>
+        `<div class="sblock settings-backups"><div class="row between settings-backup-head"><h2 translate="no">${isRussian() ? 'Копии и восстановление' : 'Backups and restore'}</h2><div class="row settings-backup-actions"><button class="btn btn-secondary" data-a="loadWorkspaceBackups">${ic('refresh-cw', 14)}Refresh</button><button class="btn btn-primary" data-a="createWorkspaceBackup">${ic('database-backup', 14)}Create backup</button></div></div><p class="muted settings-backup-description">Automatic backups require a working daily schedule. Check the copies below to confirm successful runs. The latest 30 automatic copies are retained; manual copies are not removed automatically.</p>
         ${S.ui.backupsLoading ? `<div class="muted" style="padding:18px 0">${ic('loader', 14)} Loading…</div>` : S.ui.backupsError ? `<div class="alert warn" role="alert" style="margin-top:14px">${ic('triangle-alert', 15)}<span>${esc(tr(S.ui.backupsError))}</span></div>` : Array.isArray(S.ui.backups) ? (S.ui.backups.length ? `<div style="margin-top:14px">${S.ui.backups.map(backup => srow(esc(backupDisplayLabel(backup.label)), `${settingsTimestamp(backup.createdAt)} · ${fsize(backup.size || 0)}`, `<button class="btn btn-secondary btn-sm" data-a="restoreWorkspaceBackup" data-id="${esc(backup.id)}">${ic('history', 13)}Restore</button>`)).join('')}</div>` : '<p class="faint" style="padding:16px 0 0">No backups yet.</p>') : '<p class="faint" style="padding:16px 0 0">Select Refresh to show available backups.</p>'}
         </div>
         <details class="sblock settings-data-option" ${disclosureAttributes('settings-recovery-export')}><summary><strong>Independent recovery export</strong><small translate="no">${isRussian() ? 'Данные пространства и вложения · до 100 МБ' : 'Workspace data and attachments · up to 100 MB'}</small></summary><div class="settings-data-option-body"><p class="lead">Includes workspace data and attachments up to 100 MB total. Store this confidential export outside Google Drive.</p><a class="btn btn-secondary" href="/api/recovery/export?account=${encodeURIComponent(S.ui.currentUser?.id || '')}&workspace=${encodeURIComponent(S.ui.activeWorkspace || 'default')}" download>${ic('download', 14)}Download recovery bundle</a></div></details>
@@ -361,7 +360,8 @@ export function settingsBody(sec, title) {
         <h3>Included data</h3>
           ${srow('Knowledge base', contentCounts(d.knowledgeNotes?.length || 0, d.knowledgeFolders?.length || 0, 'note'), `<span class="badge">${ic('library-big', 12)}KMS compatible</span>`)}
           ${srow('Bookmarks', contentCounts(d.links?.length || 0, d.linkFolders?.length || 0, 'bookmark'), `<span class="badge">${ic('bookmark', 12)}KMS compatible</span>`)}
-        </div></details>`
+        </div></details>` +
+        storageCapacityPanel()
       );
     case 'members':
       return (
@@ -375,6 +375,7 @@ export function settingsBody(sec, title) {
       const arch = d.projects.filter(p => p.archived);
       return (
         H('Defaults for new projects and archived work.') +
+        `<div class="sblock"><h2 translate="no">${isRussian() ? 'Личный вид проектов' : 'Personal project view'}</h2></div>` +
         srow(
           'Default project view',
           'The tab that opens when you open a project.',
@@ -391,7 +392,7 @@ export function settingsBody(sec, title) {
           ),
         ) +
         srow('Show completed tasks on boards', '', tog('showDoneBoard', P.showDoneBoard !== false)) +
-        `<div class="sblock"><h2>Archived projects</h2>${arch.length ? arch.map(p => `<div class="srow"><div class="row">${pIcon(p, '', 14)}<b style="font-weight:500">${esc(p.name)}</b></div><div class="row"><button class="btn btn-secondary btn-sm" data-a="restoreProject" data-id="${p.id}">Restore</button><button class="btn btn-danger-ghost btn-sm" data-a="delProject" data-id="${p.id}">Delete</button></div></div>`).join('') : `<p class="faint" style="padding:12px 0">No archived projects. Archived projects are hidden from the sidebar but keep all their tasks.</p>`}<div style="margin-top:12px"><button class="btn btn-secondary btn-sm" data-a="go" data-r="archive">${ic('archive', 13)}Open archive</button></div></div>`
+        `<div class="sblock"><h2>Archived projects</h2><p class="hint" translate="no">${isRussian() ? 'Восстановление и удаление меняют архив для всего пространства.' : 'Restoring or deleting a project changes the workspace archive.'}</p>${arch.length ? arch.map(p => `<div class="srow"><div class="row">${pIcon(p, '', 14)}<b style="font-weight:500">${esc(p.name)}</b></div><div class="row"><button class="btn btn-secondary btn-sm" data-a="restoreProject" data-id="${p.id}">Restore</button><button class="btn btn-danger-ghost btn-sm" data-a="delProject" data-id="${p.id}">Delete</button></div></div>`).join('') : `<p class="faint" style="padding:12px 0">No archived projects. Archived projects are hidden from the sidebar but keep all their tasks.</p>`}<div style="margin-top:12px"><button class="btn btn-secondary btn-sm" data-a="go" data-r="archive">${ic('archive', 13)}Open archive</button></div></div>`
       );
     }
     case 'permissions':
