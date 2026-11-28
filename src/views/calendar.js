@@ -22,6 +22,8 @@ export function calendarHtml(ts, opt = {}) {
   const cur = parse(S.ui.calDate);
   const mode = calendarMode();
   const itemsOn = ds => calendarItemsForView(ts, ds, opt);
+  const addTask = (ds, extraClass = '') =>
+    `<button class="ibtn ibtn-xs${extraClass}" data-a="newTask" data-due="${ds}" ${opt.project ? `data-project="${opt.project}"` : ''} aria-label="${esc(`${isRussian() ? 'Добавить задачу на' : 'Add task on'} ${fmtDate(ds)}`)}">${ic('plus', 13)}</button>`;
   const wdn = Array.from({ length: 7 }, (_, i) => WD[(i + S.prefs.weekStart) % 7]);
   const chip = it => {
     if (it.milestone || it.deadline) return calendarPlanItem(it);
@@ -60,7 +62,7 @@ export function calendarHtml(ts, opt = {}) {
           const today = diffD(d, TODAY) === 0;
           return `<div class="cday ${d.getMonth() !== cur.getMonth() ? 'out' : ''} ${today ? 'today' : ''}" data-drop-day="${ds}">
           <button class="cal-day-open" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}" data-project="${opt.project || ''}" data-events="${opt.events ? '1' : '0'}" aria-label="${esc(t('View day'))}: ${fmtDate(ds)}${items.length ? ` · ${items.length}` : ''}"><span class="dn" ${today ? 'aria-current="date"' : ''}>${d.getDate()}</span><span class="cal-day-count" aria-hidden="true">${items.length || ''}</span></button>
-          <button class="ibtn ibtn-xs add" data-a="newTask" data-due="${ds}" ${opt.project ? `data-project="${opt.project}"` : ''} aria-label="Add task on ${fmtDate(ds)}">${ic('plus', 13)}</button>
+          ${addTask(ds, ' add')}
           ${items.slice(0, 3).map(chip).join('')}
           ${items.length > 3 ? `<button class="cmore" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}" data-project="${opt.project || ''}" data-events="${opt.events ? '1' : '0'}">+${items.length - 3} more</button>` : ''}
         </div>`;
@@ -75,7 +77,7 @@ export function calendarHtml(ts, opt = {}) {
         const ds = iso(d);
         const items = itemsOn(ds).sort((a, b) => (a.ev ? 0 : 1) - (b.ev ? 0 : 1));
         const today = diffD(d, TODAY) === 0;
-        return `<div class="wcol${items.length ? '' : ' is-empty'}"><div class="wcol-h ${today ? 'today' : ''}"><span class="n">${d.getDate()}</span><span class="muted" style="font-size:12px">${WD[d.getDay()]}</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="newTask" data-due="${ds}" ${opt.project ? `data-project="${opt.project}"` : ''} aria-label="Add task">${ic('plus', 13)}</button></div>
+        return `<div class="wcol${items.length ? '' : ' is-empty'}"><div class="wcol-h ${today ? 'today' : ''}"><span class="n">${d.getDate()}</span><span class="muted" style="font-size:12px">${WD[d.getDay()]}</span><span class="sp"></span>${addTask(ds)}</div>
         <div class="wcol-b" data-drop-day="${ds}">${
           items
             .map(it => {
