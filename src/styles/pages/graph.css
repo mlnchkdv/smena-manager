@@ -472,9 +472,6 @@
   .graph-head h1 {
     font-size: var(--fs-xl);
   }
-  .graph-export span {
-    display: none;
-  }
   .graph-toolbar {
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -1287,7 +1284,7 @@
     padding: 12px;
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-pop);
     scroll-margin-block: 0;
   }
   .graph-filter-panel .graph-filter-return {
