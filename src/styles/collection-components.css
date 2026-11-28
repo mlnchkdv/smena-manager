@@ -98,3 +98,14 @@
     min-height: 44px;
   }
 }
+.project-material-hub .knowledge-relation {
+  max-inline-size: 100%;
+  block-size: auto;
+  flex-wrap: wrap;
+  white-space: normal;
+  text-align: start;
+}
+.project-material-hub .knowledge-relation > span {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}

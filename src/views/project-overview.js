@@ -8,6 +8,7 @@ import { av, avStack, empty, pStatus, projectDueHtml, stIcon } from '../ui/helpe
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
 import { projectCycleSummary } from '../ui/project-cycle-summary.js';
+import { isRussian } from '../core/i18n.js';
 
 export function projOverview(p) {
   const ts = tasksOf(p.id);
@@ -26,7 +27,7 @@ export function projOverview(p) {
   return `<div class="page" style="max-width:1160px;padding-top:22px">
     <div class="grid2">
       <div class="stack">
-        <section class="panel"><div class="panel-h"><h2>About</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="editProject" data-id="${p.id}">${ic('pencil', 13)}Edit</button></div></div><div class="panel-b" style="font-size:14px;line-height:1.6;color:var(--text)">${esc(p.desc)}</div></section>
+        <section class="panel"><div class="panel-h"><h2 translate="no">${isRussian() ? 'О проекте' : 'About the project'}</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="editProject" data-id="${p.id}">${ic('pencil', 13)}Edit</button></div></div><div class="panel-b" style="font-size:14px;line-height:1.6;color:var(--text)">${esc(p.desc)}</div></section>
         <section class="panel"><div class="panel-h"><h2>Progress</h2><div class="acts"><span class="faint" style="font-size:12px">${ts.filter(t => t.status === 'done').length} of ${ts.length} tasks done</span></div></div>
           <div class="panel-b">
             <div class="row" style="align-items:baseline;gap:10px;margin-bottom:10px"><span style="font-size:30px;font-weight:600;letter-spacing:-.03em" class="num">${pr}%</span><span class="muted">${projectDueHtml(p, { icon: true })}</span>${over.length ? `<button class="btn btn-ghost btn-sm bad" data-a="goTasks" data-f="overdue" data-project="${esc(p.id)}">${ic('clock-alert', 11)}${over.length} overdue</button>` : ''}</div>

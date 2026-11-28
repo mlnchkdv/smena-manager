@@ -23,7 +23,7 @@ export function projectMaterialHub(id) {
   const writable = remote?.view?.nodes.find(n => n.key === key)?.writable ?? entityAllowed(D(), key, graphOptions(), true);
   const ru = isRussian();
   return (
-    '<section class="panel knowledge-hub"><div class="panel-h"><h2>' +
+    '<section class="panel knowledge-hub project-material-hub"><div class="panel-h"><h2>' +
     (ru ? 'Материалы проекта' : 'Project materials') +
     '</h2></div><div class="panel-b">' +
     '<div class="row" style="flex-wrap:wrap;gap:8px">' +
