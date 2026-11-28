@@ -238,16 +238,14 @@
   z-index: 7;
 }
 .files-search-help {
-  position: absolute;
-  right: 2px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: relative;
+  flex: 0 0 auto;
   z-index: 9;
 }
 .files-search-help > div {
   position: absolute;
   top: 100%;
-  right: 0;
+  inset-inline-end: 0;
   width: min(300px, calc(100vw - 48px));
   padding: 12px;
   background: var(--surface);
@@ -255,15 +253,6 @@
   border-radius: var(--r);
   box-shadow: var(--shadow-pop);
   font-size: var(--fs-xs);
-}
-.has-search-help .input {
-  padding-right: 44px;
-}
-.has-search-help:has(.workspace-file-search-clear) .input {
-  padding-right: 88px;
-}
-.has-search-help .workspace-file-search-clear {
-  right: 44px;
 }
 .file-match-hint {
   display: block;
@@ -449,7 +438,18 @@
     gap: 8px;
   }
   .files-page .workspace-files-toolbar .workspace-file-search {
-    flex: 1 1 180px;
+    flex: 1 1 100%;
+  }
+  .files-page .workspace-files-toolbar .files-search-help {
+    margin-inline-start: auto;
+  }
+  .files-page .workspace-files-toolbar .files-search-help > summary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .files-page .workspace-files-toolbar .files-search-help > div {
+    inset-inline-end: 0;
+    width: min(232px, calc(100vw - 88px));
   }
   .files-page .workspace-files-toolbar .files-view-switch {
     margin-left: 0;
