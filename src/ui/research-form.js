@@ -28,9 +28,8 @@ export function researchFormFields(m) {
   if (kind === 'experiment')
     fields =
       field('hypothesis', rw('What are we testing?', 'Что проверяем?'), data.hypothesis) +
-      field('baseline', rw('Baseline', 'С чем сравниваем?'), data.baseline) +
-      field('factor', rw('What changes?', 'Что изменяем?'), data.factor) +
-      field('criterion', rw('Success criterion agreed before results', 'Критерий успеха до получения результата'), data.criterion);
+      field('criterion', rw('Success criterion', 'Критерий успеха'), data.criterion) +
+      `<details ${researchDisclosure(m, 'experiment-comparison')}><summary>${rw('Comparison and variables', 'Сравнение и переменные')}</summary><div class="research-form-section">${field('baseline', rw('Baseline', 'С чем сравниваем?'), data.baseline)}${field('factor', rw('What changes?', 'Что изменяем?'), data.factor)}</div></details>`;
   if (kind === 'source')
     fields =
       field('sourceUrl', rw('Primary source URL', 'Адрес первоисточника'), data.sourceUrl, 'url') +
@@ -113,9 +112,12 @@ export function researchFormFields(m) {
     (m.reviewers || []).map(member => [member.id, member.name]),
   );
   const notes = `<label class="field">${rw('Notes', 'Описание')}<textarea class="textarea" rows="6" data-in="researchField" data-field="body" maxlength="64000">${esc(record.body || '')}</textarea></label>`;
+  const additionalNotes = kind === 'experiment'
+    ? `<details ${researchDisclosure(m, 'experiment-notes')}><summary>${rw('Description', 'Описание')}</summary><div class="research-form-section">${notes}</div></details>`
+    : notes;
   const amendment =
     m.original && kind === 'run' && ['completed', 'failed', 'cancelled'].includes(data.state)
       ? field('amendment', rw('Reason for this correction', 'Причина этого исправления'), data.amendment)
       : '';
-  return `${field('title', rw('Title', 'Название'), record.title)}${template}${kind === 'observation' ? notes : ''}${fields}${referenceSearch}${kind !== 'observation' ? notes : ''}${amendment}${researchEvidenceForm(m)}<details ${researchDisclosure(m, 'reviewer')}><summary>${rw('Review', 'Проверка')}</summary><div class="research-form-section">${reviewer}</div></details>`;
+  return `${field('title', rw('Title', 'Название'), record.title)}${template}${kind === 'observation' ? notes : ''}${fields}${referenceSearch}${kind !== 'observation' ? additionalNotes : ''}${amendment}${researchEvidenceForm(m)}<details ${researchDisclosure(m, 'reviewer')}><summary>${rw('Review', 'Проверка')}</summary><div class="research-form-section">${reviewer}</div></details>`;
 }
