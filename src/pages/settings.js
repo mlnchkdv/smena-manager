@@ -393,10 +393,10 @@ export function settingsBody(sec, title) {
     case 'permissions':
       return (
         H('Control what each role can do.') +
+        `<div class="sblock"><h2>Role permissions</h2>${permsTable()}</div>` +
         srow('Members can create projects', '', tog('createProjects', d.ws.permissions?.createProjects !== false, 'workspacePerm')) +
         srow('Manage sign-in access', 'Only workspace administrators can add sign-in access.', '') +
-        srow('Project links', 'Project links require sign-in. Anonymous public sharing is not enabled.', '') +
-        `<div class="sblock"><h2>Role permissions</h2><div style="margin-top:12px">${permsTable()}</div></div>`
+        srow('Project links', 'Project links require sign-in.', '')
       );
     case 'notif-email':
       return (

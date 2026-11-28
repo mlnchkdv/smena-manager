@@ -102,7 +102,7 @@ export function permsTable() {
     ['Clear workspace content', 1, 1, 0, 0],
   ];
   const selectedRole = ROLES.includes(S.ui.permissionsRole) ? S.ui.permissionsRole : 'Member';
-  return `<p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><details class="permission-notes"><summary>About workspace roles</summary><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p></details><label class="permission-role-picker"><span>${isRussian() ? 'Роль' : 'Role'}</span><select class="select" data-in="permissionsRole">${ROLES.map(role => `<option value="${role}" ${role === selectedRole ? 'selected' : ''}>${esc(workspaceRoleLabel(role))}</option>`).join('')}</select></label><div class="panel permission-matrix" style="overflow-x:auto" role="region" aria-label="Role permissions" tabindex="0"><table class="perm-t" style="min-width:560px"><caption class="sr">Roles in the current workspace</caption><thead><tr><th scope="col" style="padding-left:14px">Permission</th>${ROLES.map(r => `<th scope="col" class="${r === selectedRole ? '' : 'other-role'}">${esc(workspaceRoleLabel(r))}</th>`).join('')}</tr></thead><tbody>${rows
+  return `<label class="permission-role-picker"><span>${isRussian() ? 'Роль' : 'Role'}</span><select class="select" data-in="permissionsRole">${ROLES.map(role => `<option value="${role}" ${role === selectedRole ? 'selected' : ''}>${esc(workspaceRoleLabel(role))}</option>`).join('')}</select></label><div class="panel permission-matrix" style="overflow-x:auto" role="region" aria-label="Role permissions" tabindex="0"><table class="perm-t" style="min-width:560px"><caption class="sr">Roles in the current workspace</caption><thead><tr><th scope="col" style="padding-left:14px">Permission</th>${ROLES.map(r => `<th scope="col" class="${r === selectedRole ? '' : 'other-role'}">${esc(workspaceRoleLabel(r))}</th>`).join('')}</tr></thead><tbody>${rows
     .map(
       r =>
         `<tr><th scope="row" style="padding-left:14px;text-align:left;font-weight:400">${r[0]}</th>${r
@@ -113,7 +113,7 @@ export function permsTable() {
           )
           .join('')}</tr>`,
     )
-    .join('')}</tbody></table></div>`;
+    .join('')}</tbody></table></div><p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><details class="permission-notes"><summary>About workspace roles</summary><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p></details>`;
 }
 export function teamsGrid() {
   return `<div class="pgrid">${teamsList()
@@ -162,7 +162,7 @@ export function pageTeam() {
         },
       )}<p class="hint">${tr(scope === 'projects' ? 'Open tasks in this team’s visible projects, regardless of assignee.' : 'Open tasks assigned to team members, across visible projects.')}</p></div>${ts.rows.map(x => miniRow(x)).join('') || '<div class="panel-b faint">No tasks here</div>'}${ts.pages > 1 ? `<nav class="panel-b team-task-pagination" aria-label="${tr('Team task pages')}"><span class="hint" role="status">${ts.start}–${ts.end} / ${ts.total}</span><button class="btn btn-secondary btn-sm" data-a="teamTaskPage" data-page="${ts.page - 1}" ${ts.page === 0 ? 'disabled' : ''}>Previous</button><button class="btn btn-secondary btn-sm" data-a="teamTaskPage" data-page="${ts.page + 1}" ${ts.page + 1 === ts.pages ? 'disabled' : ''}>Next</button></nav>` : ''}</section>
     </div>
-    <section class="panel" style="align-self:start"><div class="panel-h"><h2>Members</h2><span class="faint">${ms.length}</span></div>${ms.map(m => `<div class="mini" style="min-height:48px" data-a="go" data-r="member" data-id="${m.id}">${av(m.id, 'md', false, true)}<div class="grow"><div style="font-weight:500" translate="no">${esc(m.name)}</div><div class="faint" style="font-size:12px" translate="no">${esc(m.title)}</div></div><span class="badge">${esc(workspaceRoleLabel(m.role))}</span></div>`).join('')}</section></div>
+    <section class="panel" style="align-self:start"><div class="panel-h"><h2>Members</h2><span class="faint">${ms.length}</span></div>${ms.map(m => `<div class="mini" style="min-height:48px" data-a="go" data-r="member" data-id="${m.id}">${av(m.id, 'md', false, true)}<div class="grow"><div style="font-weight:500" translate="no">${esc(m.name)}</div><div class="faint" style="font-size:12px" translate="no">${esc(m.title)}</div></div><span class="badge">${esc(workspaceRoleLabel(m.role))}</span>${m.status === 'invited' ? '<span class="badge amber">Invited</span>' : ''}</div>`).join('')}</section></div>
   </div>`;
 }
 export function pageMember() {
